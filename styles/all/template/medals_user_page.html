@@ -1,0 +1,34 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{L_MEMBERMEDALS_USER_PAGE_TITLE}</h2>
+<div class="membermedals-user-header panel bg1">
+    <div class="inner">
+        <p class="membermedals-user-name">{MEMBER_USERNAME}</p>
+        <div class="membermedals-meta membermedals-meta-inline">
+            <span><strong>{L_MEMBERMEDALS_TOTAL_EARNED}{L_COLON}</strong> {AWARD_TOTAL}</span>
+            <!-- IF S_HAS_MEMBER_RANK --><span><strong>{L_MEMBERMEDALS_MEMBER_RANK}{L_COLON}</strong> #{MEMBER_RANK}</span><!-- ENDIF -->
+        </div>
+        <div class="membermedals-actions-bar">
+            <a class="membermedals-action-link" href="{U_ALL_MEDALS}">{L_MEMBERMEDALS_BACK_TO_ALL}</a>
+            <!-- IF U_MEMBERMEDALS_UCP --><a class="membermedals-action-link" href="{U_MEMBERMEDALS_UCP}">{L_MEMBERMEDALS_OPEN_UCP}</a><!-- ENDIF --><!-- IF U_MY_MEMBERMEDALS --><a class="membermedals-action-link" href="{U_MY_MEMBERMEDALS}">{L_MEMBERMEDALS_MY_MEDALS}</a><!-- ENDIF -->
+        </div>
+    </div>
+</div>
+<div class="membermedals-grid">
+    <!-- BEGIN awards -->
+    <article class="membermedals-card<!-- IF awards.S_FEATURED --> membermedals-card-featured<!-- ENDIF --><!-- IF awards.S_USER_FEATURED --> membermedals-card-user-featured<!-- ENDIF -->">
+        <div class="membermedals-image"><!-- IF awards.MEDAL_IMAGE --><img src="{awards.MEDAL_IMAGE}" alt="{awards.MEDAL_NAME}" onerror="this.style.display='none';var fb=this.parentNode.querySelector('.membermedals-fallback-large');if(fb){fb.style.display='flex';}" /><span class="membermedals-fallback-large">🏅</span><!-- ELSE --><span class="membermedals-fallback-large membermedals-fallback-visible">🏅</span><!-- ENDIF --></div>
+        <div class="membermedals-content">
+            <h3><a href="{awards.U_VIEW_MEDAL}">{awards.MEDAL_NAME}</a></h3>
+            <!-- IF awards.MEDAL_DESCRIPTION --><p>{awards.MEDAL_DESCRIPTION}</p><!-- ENDIF -->
+        </div>
+        <div class="membermedals-meta">
+            <span>{L_MEMBERMEDALS_DATE_LABEL}{L_COLON} {awards.AWARDED_AT}</span>
+            <span>{L_MEMBERMEDALS_AWARD_SOURCE}{L_COLON} {awards.AWARD_SOURCE}</span>
+            <!-- IF awards.S_USER_FEATURED --><span>{L_MEMBERMEDALS_FEATURED_BY_USER}</span><!-- ENDIF -->
+        </div>
+    </article>
+    <!-- BEGINELSE -->
+    <p>{L_MEMBERMEDALS_NO_MEMBER_MEDALS}</p>
+    <!-- END awards -->
+</div>
+<!-- INCLUDE overall_footer.html -->

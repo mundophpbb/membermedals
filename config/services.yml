@@ -1,0 +1,70 @@
+imports:
+    - { resource: tables.yml }
+
+services:
+    mundophpbb.membermedals.medals_manager:
+        class: mundophpbb\membermedals\service\medals_manager
+        arguments:
+            - '@dbal.conn'
+            - '@config'
+            - '@user'
+            - '@controller.helper'
+            - '%tables.membermedals_medals%'
+            - '%tables.membermedals_rules%'
+            - '%tables.membermedals_awards%'
+            - '%tables.membermedals_featured%'
+
+    mundophpbb.membermedals.grant_manager:
+        class: mundophpbb\membermedals\service\grant_manager
+        arguments:
+            - '@dbal.conn'
+            - '@config'
+            - '@notification_manager'
+            - '%tables.membermedals_medals%'
+            - '%tables.membermedals_awards%'
+            - '%tables.membermedals_featured%'
+
+    mundophpbb.membermedals.rules_manager:
+        class: mundophpbb\membermedals\service\rules_manager
+        arguments:
+            - '@dbal.conn'
+            - '%tables.membermedals_medals%'
+            - '%tables.membermedals_rules%'
+            - '%tables.membermedals_awards%'
+            - '@mundophpbb.membermedals.grant_manager'
+
+    mundophpbb.membermedals.image_manager:
+        class: mundophpbb\membermedals\service\image_manager
+        arguments:
+            - '%core.root_path%'
+
+    mundophpbb.membermedals.controller.medals:
+        class: mundophpbb\membermedals\controller\medals_controller
+        arguments:
+            - '@config'
+            - '@template'
+            - '@controller.helper'
+            - '@user'
+            - '@mundophpbb.membermedals.medals_manager'
+            - '@mundophpbb.membermedals.image_manager'
+        tags:
+            - { name: controller.service_arguments }
+
+    mundophpbb.membermedals.listener:
+        class: mundophpbb\membermedals\event\listener
+        arguments:
+            - '@user'
+            - '@config'
+            - '@template'
+            - '@controller.helper'
+            - '@mundophpbb.membermedals.medals_manager'
+            - '@mundophpbb.membermedals.rules_manager'
+        tags:
+            - { name: event.listener }
+
+    mundophpbb.membermedals.notification.type.medal_awarded:
+        class: mundophpbb\membermedals\notification\type\medal_awarded
+        shared: false
+        parent: notification.type.base
+        tags:
+            - { name: notification.type }

@@ -1,0 +1,409 @@
+.membermedals-list-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.membermedals-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 12px 0 16px;
+}
+.membermedals-summary-card,
+.membermedals-detail-card,
+.membermedals-card {
+    border: 1px solid #d8d8d8;
+    padding: 12px;
+    background: #fff;
+}
+.membermedals-summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.membermedals-summary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    opacity: .8;
+}
+.membermedals-summary-value {
+    font-size: 24px;
+    line-height: 1.15;
+}
+.membermedals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+}
+.membermedals-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.membermedals-card-featured {
+    border-width: 2px;
+}
+.membermedals-card-user-featured {
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.05);
+}
+.membermedals-card-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+}
+.membermedals-card-link:hover h3 {
+    text-decoration: underline;
+}
+.membermedals-image,
+.membermedals-detail-image,
+.membermedals-mini-card-image {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+.membermedals-image img,
+.membermedals-detail-image img {
+    max-width: 72px;
+    max-height: 72px;
+}
+.membermedals-mini-card-image img {
+    max-width: 56px;
+    max-height: 56px;
+}
+.membermedals-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+}
+.membermedals-meta span {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #d9d9d9;
+    padding: 3px 6px;
+}
+.membermedals-meta-inline {
+    margin-top: 8px;
+}
+.membermedals-detail-card {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.membermedals-content h3 {
+    margin: 0 0 6px;
+}
+.membermedals-content p {
+    margin: 0;
+}
+.membermedals-fallback-large {
+    font-size: 42px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border: 1px dashed #d0d0d0;
+    background: #fafafa;
+}
+.membermedals-fallback {
+    font-size: 16px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: 1px dashed #d0d0d0;
+    background: #fafafa;
+}
+.membermedals-fallback-visible {
+    display: flex;
+}
+.membermedals-compact-label {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: .8;
+}
+.membermedals-compact a { text-decoration: none; }
+.membermedals-item {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9d9d9;
+    margin: 0;
+    vertical-align: middle;
+}
+.membermedals-item img { max-width: 20px; max-height: 20px; }
+.membermedals-more,
+.membermedals-compact-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9d9d9;
+    padding: 3px 6px;
+    font-size: 11px;
+}
+.membermedals-profile-panel {
+    margin-top: 12px;
+}
+.membermedals-user-header {
+    margin-bottom: 12px;
+}
+.membermedals-user-name {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+.membermedals-user-meta {
+    margin: 0;
+}
+.membermedals-topiclist .row dt,
+.membermedals-topiclist .row dd {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+.membermedals-footer-link {
+    margin: 10px 0 0;
+    text-align: center;
+}
+.membermedals-footer-link a {
+    font-weight: 600;
+}
+.membermedals-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 14px;
+}
+.membermedals-action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9d9d9;
+    padding: 5px 9px;
+    text-decoration: none;
+    font-size: 12px;
+}
+.membermedals-compact {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.membermedals-compact-top,
+.membermedals-compact-actions,
+.membermedals-compact-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+.membermedals-compact-count {
+    font-size: 11px;
+    border: 1px solid #d9d9d9;
+    padding: 3px 6px;
+}
+.membermedals-compact-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    opacity: .85;
+}
+.membermedals-section-block {
+    margin: 18px 0;
+}
+.membermedals-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.membermedals-section-head h3,
+.membermedals-dashboard-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.membermedals-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+}
+.membermedals-dashboard-panel-wide {
+    margin-top: 18px;
+}
+.membermedals-simple-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.membermedals-simple-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 1px solid #ececec;
+    padding-bottom: 8px;
+}
+.membermedals-simple-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+.membermedals-simple-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.membermedals-simple-user {
+    font-weight: 600;
+}
+.membermedals-simple-meta {
+    font-size: 12px;
+    opacity: .85;
+}
+.membermedals-rank-badge,
+.membermedals-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d9d9d9;
+    padding: 2px 6px;
+    font-size: 11px;
+    min-width: 24px;
+}
+.membermedals-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+.membermedals-mini-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid #d9d9d9;
+    padding: 10px;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+}
+.membermedals-mini-card:hover .membermedals-mini-card-title {
+    text-decoration: underline;
+}
+.membermedals-mini-card-title {
+    font-weight: 600;
+}
+.membermedals-mini-card-meta {
+    font-size: 12px;
+    opacity: .85;
+}
+.membermedals-recent-list .membermedals-simple-item {
+    align-items: flex-start;
+}
+.membermedals-recent-sep {
+    opacity: .6;
+}
+.membermedals-recent-medal {
+    text-decoration: none;
+    font-weight: 600;
+}
+.membermedals-detail-grid {
+    align-items: start;
+}
+@media (max-width: 700px) {
+    .membermedals-detail-card {
+        grid-template-columns: 1fr;
+    }
+    .membermedals-simple-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+.membermedals-compact-primary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 8px 0 10px;
+}
+.membermedals-badge-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #d9d9d9;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    min-width: 0;
+}
+.membermedals-badge-card:hover .membermedals-badge-card-label {
+    text-decoration: underline;
+}
+.membermedals-badge-card-image {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+}
+.membermedals-badge-card-image img {
+    display: block;
+    max-width: 36px;
+    max-height: 36px;
+    width: auto;
+    height: auto;
+}
+.membermedals-badge-card-label {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+.membermedals-badge-card-selected {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.membermedals-miniprofile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+.membermedals-miniprofile-row {
+    margin-top: 4px;
+}
+.membermedals-miniprofile .membermedals-item,
+.membermedals-miniprofile .membermedals-item-static {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    background: transparent;
+}
+.membermedals-miniprofile .membermedals-item img {
+    max-width: 20px;
+    max-height: 20px;
+}
+.membermedals-miniprofile .membermedals-more {
+    border: 0;
+    padding: 0 2px;
+    min-width: 0;
+    background: transparent;
+}
+@media (max-width: 700px) {
+    .membermedals-compact-primary {
+        grid-template-columns: 1fr;
+    }
+}

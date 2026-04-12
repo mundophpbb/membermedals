@@ -1,0 +1,129 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{L_MEMBERMEDALS_PAGE_TITLE}</h2>
+<p>{L_MEMBERMEDALS_PAGE_EXPLAIN}</p>
+
+<div class="membermedals-actions-bar">
+    <!-- IF U_MEMBERMEDALS_UCP --><a class="membermedals-action-link" href="{U_MEMBERMEDALS_UCP}">{L_MEMBERMEDALS_OPEN_UCP}</a><!-- ENDIF -->
+    <!-- IF U_MY_MEMBERMEDALS --><a class="membermedals-action-link" href="{U_MY_MEMBERMEDALS}">{L_MEMBERMEDALS_MY_MEDALS}</a><!-- ENDIF -->
+    <a class="membermedals-action-link" href="{U_MEMBERMEDALS_HOME}">{L_MEMBERMEDALS_OPEN_SHOWCASE}</a>
+</div>
+
+<div class="membermedals-summary-grid">
+    <div class="membermedals-summary-card">
+        <span class="membermedals-summary-label">{L_MEMBERMEDALS_TOTAL_PUBLIC_MEDALS}</span>
+        <strong class="membermedals-summary-value">{TOTAL_PUBLIC_MEDALS}</strong>
+    </div>
+    <div class="membermedals-summary-card">
+        <span class="membermedals-summary-label">{L_MEMBERMEDALS_TOTAL_PUBLIC_AWARDS}</span>
+        <strong class="membermedals-summary-value">{TOTAL_PUBLIC_AWARDS}</strong>
+    </div>
+    <div class="membermedals-summary-card">
+        <span class="membermedals-summary-label">{L_MEMBERMEDALS_TOTAL_MEDALISTS}</span>
+        <strong class="membermedals-summary-value">{TOTAL_PUBLIC_MEMBERS}</strong>
+    </div>
+</div>
+
+<div class="membermedals-dashboard-grid">
+    <!-- IF S_HAS_TOP_MEMBERS -->
+    <section class="panel bg1 membermedals-dashboard-panel">
+        <div class="inner">
+            <h3>{L_MEMBERMEDALS_TOP_MEMBERS}</h3>
+            <div class="membermedals-simple-list">
+                <!-- BEGIN top_members -->
+                <div class="membermedals-simple-item">
+                    <div class="membermedals-simple-main">
+                        <span class="membermedals-rank-badge">#{top_members.RANK_POS}</span>
+                        <span class="membermedals-simple-user">{top_members.USERNAME_FULL}</span>
+                    </div>
+                    <div class="membermedals-simple-meta"><span class="membermedals-stat-pill">{top_members.AWARD_TOTAL}</span> {L_MEMBERMEDALS_TOTAL_EARNED}</div>
+                </div>
+                <!-- BEGINELSE -->
+                <p>{L_MEMBERMEDALS_NO_RECENT_AWARDS}</p>
+                <!-- END top_members -->
+            </div>
+        </div>
+    </section>
+    <!-- ENDIF -->
+
+    <!-- IF S_HAS_EXTREMES -->
+    <section class="panel bg1 membermedals-dashboard-panel">
+        <div class="inner">
+            <h3>{L_MEMBERMEDALS_RAREST_MEDALS}</h3>
+            <div class="membermedals-mini-grid">
+                <!-- BEGIN rare_medals -->
+                <a class="membermedals-mini-card" href="{rare_medals.U_VIEW_MEDAL}">
+                    <span class="membermedals-mini-card-image"><!-- IF rare_medals.MEDAL_IMAGE --><img src="{rare_medals.MEDAL_IMAGE}" alt="{rare_medals.MEDAL_NAME}" onerror="this.style.display='none';var fb=this.parentNode.querySelector('.membermedals-fallback');if(fb){fb.style.display='flex';}" /><span class="membermedals-fallback">🏅</span><!-- ELSE --><span class="membermedals-fallback membermedals-fallback-visible">🏅</span><!-- ENDIF --></span>
+                    <span class="membermedals-mini-card-title">{rare_medals.MEDAL_NAME}</span>
+                    <span class="membermedals-mini-card-meta">{rare_medals.AWARD_COUNT} • {rare_medals.RARITY_LABEL}</span>
+                </a>
+                <!-- BEGINELSE -->
+                <p>{L_MEMBERMEDALS_NO_TOP_MEMBERS}</p>
+                <!-- END rare_medals -->
+            </div>
+        </div>
+    </section>
+
+    <section class="panel bg1 membermedals-dashboard-panel">
+        <div class="inner">
+            <h3>{L_MEMBERMEDALS_MOST_CLAIMED}</h3>
+            <div class="membermedals-mini-grid">
+                <!-- BEGIN popular_medals -->
+                <a class="membermedals-mini-card" href="{popular_medals.U_VIEW_MEDAL}">
+                    <span class="membermedals-mini-card-image"><!-- IF popular_medals.MEDAL_IMAGE --><img src="{popular_medals.MEDAL_IMAGE}" alt="{popular_medals.MEDAL_NAME}" onerror="this.style.display='none';var fb=this.parentNode.querySelector('.membermedals-fallback');if(fb){fb.style.display='flex';}" /><span class="membermedals-fallback">🏅</span><!-- ELSE --><span class="membermedals-fallback membermedals-fallback-visible">🏅</span><!-- ENDIF --></span>
+                    <span class="membermedals-mini-card-title">{popular_medals.MEDAL_NAME}</span>
+                    <span class="membermedals-mini-card-meta">{popular_medals.AWARD_COUNT} • {popular_medals.RARITY_LABEL}</span>
+                </a>
+                <!-- BEGINELSE -->
+                <p>{L_MEMBERMEDALS_NO_PUBLIC_MEDALS}</p>
+                <!-- END popular_medals -->
+            </div>
+        </div>
+    </section>
+    <!-- ENDIF -->
+</div>
+
+<section class="membermedals-section-block">
+    <div class="membermedals-section-head">
+        <h3>{L_MEMBERMEDALS_ALL_PUBLIC_MEDALS}</h3>
+    </div>
+    <div class="membermedals-grid">
+        <!-- BEGIN medals -->
+        <article class="membermedals-card<!-- IF medals.S_FEATURED --> membermedals-card-featured<!-- ENDIF -->">
+            <a class="membermedals-card-link" href="{medals.U_VIEW_MEDAL}">
+                <div class="membermedals-image"><!-- IF medals.MEDAL_IMAGE --><img src="{medals.MEDAL_IMAGE}" alt="{medals.MEDAL_NAME}" onerror="this.style.display='none';var fb=this.parentNode.querySelector('.membermedals-fallback-large');if(fb){fb.style.display='flex';}" /><span class="membermedals-fallback-large">🏅</span><!-- ELSE --><span class="membermedals-fallback-large membermedals-fallback-visible">🏅</span><!-- ENDIF --></div>
+                <div class="membermedals-content">
+                    <h3>{medals.MEDAL_NAME}</h3>
+                    <!-- IF medals.MEDAL_DESCRIPTION --><p>{medals.MEDAL_DESCRIPTION}</p><!-- ENDIF -->
+                </div>
+                <div class="membermedals-meta">
+                    <span>{L_MEMBERMEDALS_TOTAL_WINNERS}{L_COLON} {medals.AWARD_COUNT}</span>
+                    <span>{L_MEMBERMEDALS_RARITY}{L_COLON} {medals.RARITY_LABEL}</span>
+                </div>
+            </a>
+        </article>
+        <!-- BEGINELSE -->
+        <p>{L_MEMBERMEDALS_NO_PUBLIC_MEDALS}</p>
+        <!-- END medals -->
+    </div>
+</section>
+
+<!-- IF S_HAS_RECENT_AWARDS and .recent_awards -->
+<section class="panel bg1 membermedals-dashboard-panel membermedals-dashboard-panel-wide">
+    <div class="inner">
+        <h3>{L_MEMBERMEDALS_RECENT_AWARDS}</h3>
+        <div class="membermedals-simple-list membermedals-recent-list">
+            <!-- BEGIN recent_awards -->
+            <div class="membermedals-simple-item">
+                <div class="membermedals-simple-main">
+                    <span class="membermedals-simple-user">{recent_awards.USERNAME}</span>
+                    <span class="membermedals-recent-sep">•</span>
+                    <a class="membermedals-recent-medal" href="{recent_awards.U_VIEW_MEDAL}">{recent_awards.MEDAL_NAME}</a>
+                </div>
+                <div class="membermedals-simple-meta">{recent_awards.AWARDED_AT}</div>
+            </div>
+            <!-- END recent_awards -->
+        </div>
+    </div>
+</section>
+<!-- ENDIF -->
+<!-- INCLUDE overall_footer.html -->

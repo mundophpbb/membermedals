@@ -1,0 +1,62 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{MEDAL_NAME}</h2>
+<div class="membermedals-actions-bar">
+    <a class="membermedals-action-link" href="{U_ALL_MEDALS}">{L_MEMBERMEDALS_BACK_TO_ALL}</a>
+    <!-- IF U_MEMBERMEDALS_UCP --><a class="membermedals-action-link" href="{U_MEMBERMEDALS_UCP}">{L_MEMBERMEDALS_OPEN_UCP}</a><!-- ENDIF -->
+    <!-- IF U_MY_MEMBERMEDALS --><a class="membermedals-action-link" href="{U_MY_MEMBERMEDALS}">{L_MEMBERMEDALS_MY_MEDALS}</a><!-- ENDIF -->
+</div>
+
+<div class="membermedals-detail-card">
+    <div class="membermedals-detail-image">
+        <!-- IF MEDAL_IMAGE --><img src="{MEDAL_IMAGE}" alt="{MEDAL_NAME}" onerror="this.style.display='none';var fb=this.parentNode.querySelector('.membermedals-fallback-large');if(fb){fb.style.display='flex';}" /><span class="membermedals-fallback-large">🏅</span><!-- ELSE --><span class="membermedals-fallback-large membermedals-fallback-visible">🏅</span><!-- ENDIF -->
+    </div>
+    <div class="membermedals-detail-content">
+        <!-- IF MEDAL_DESCRIPTION --><p>{MEDAL_DESCRIPTION}</p><!-- ENDIF -->
+        <div class="membermedals-meta membermedals-meta-inline">
+            <span>{L_MEMBERMEDALS_TOTAL_WINNERS}{L_COLON} {MEDAL_WINNER_COUNT}</span>
+            <span>{L_MEMBERMEDALS_RARITY}{L_COLON} {MEDAL_RARITY}</span>
+        </div>
+    </div>
+</div>
+
+<div class="membermedals-dashboard-grid membermedals-detail-grid">
+    <section class="panel bg1 membermedals-dashboard-panel">
+        <div class="inner">
+            <h3>{L_MEMBERMEDALS_RULES}</h3>
+            <ul class="topiclist forums membermedals-topiclist">
+                <!-- BEGIN rules -->
+                <li class="row">
+                    <dl>
+                        <dt>{rules.RULE_LABEL}</dt>
+                        <dd>{rules.RULE_STATUS}</dd>
+                    </dl>
+                </li>
+                <!-- BEGINELSE -->
+                <li class="row"><dl><dt>{L_MEMBERMEDALS_NO_RULES}</dt></dl></li>
+                <!-- END rules -->
+            </ul>
+        </div>
+    </section>
+
+    <!-- IF S_HAS_WINNERS -->
+    <section class="panel bg1 membermedals-dashboard-panel">
+        <div class="inner">
+            <h3>{L_MEMBERMEDALS_WINNERS}</h3>
+            <ul class="topiclist forums membermedals-topiclist">
+                <!-- BEGIN winners -->
+                <li class="row">
+                    <dl>
+                        <dt>{winners.USERNAME_FULL}</dt>
+                        <dd>{winners.AWARD_SOURCE}</dd>
+                        <dd>{winners.AWARDED_AT}</dd>
+                    </dl>
+                </li>
+                <!-- BEGINELSE -->
+                <li class="row"><dl><dt>{L_MEMBERMEDALS_NO_WINNERS}</dt></dl></li>
+                <!-- END winners -->
+            </ul>
+        </div>
+    </section>
+    <!-- ENDIF -->
+</div>
+<!-- INCLUDE overall_footer.html -->

@@ -1,0 +1,21 @@
+mundophpbb_membermedals_index:
+    path: /membermedals
+    defaults: { _controller: mundophpbb.membermedals.controller.medals:index }
+
+mundophpbb_membermedals_user:
+    path: /membermedals/user/{user_id}
+    defaults: { _controller: mundophpbb.membermedals.controller.medals:user }
+    requirements:
+        user_id: \d+
+
+mundophpbb_membermedals_medal:
+    path: /membermedals/medal/{medal_id}
+    defaults: { _controller: mundophpbb.membermedals.controller.medals:medal }
+    requirements:
+        medal_id: \d+
+
+mundophpbb_membermedals_image:
+    path: /membermedals/image/{medal_id}
+    defaults: { _controller: mundophpbb.membermedals.controller.medals:image }
+    requirements:
+        medal_id: \d+

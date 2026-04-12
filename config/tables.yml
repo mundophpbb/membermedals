@@ -1,0 +1,5 @@
+parameters:
+    tables.membermedals_medals: '%core.table_prefix%membermedals'
+    tables.membermedals_rules: '%core.table_prefix%membermedals_rules'
+    tables.membermedals_awards: '%core.table_prefix%membermedals_awards'
+    tables.membermedals_featured: '%core.table_prefix%membermedals_featured'

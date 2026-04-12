@@ -1,0 +1,91 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{L_UCP_MEMBERMEDALS_TITLE}</h2>
+<div class="panel">
+    <div class="inner">
+        <p>{L_UCP_MEMBERMEDALS_EXPLAIN}</p>
+
+        <!-- IF S_MEMBERMEDALS_MESSAGE -->
+        <p class="membermedals-notice">{MEMBERMEDALS_MESSAGE}</p>
+        <!-- ENDIF -->
+
+        <div class="membermedals-actions-bar">
+            <a class="membermedals-action-link" href="{U_MEMBERMEDALS_PUBLIC_PROFILE}">{L_UCP_MEMBERMEDALS_PUBLIC_PROFILE}</a>
+            <a class="membermedals-action-link" href="{U_MEMBERMEDALS_SHOWCASE}">{L_UCP_MEMBERMEDALS_SHOWCASE}</a>
+        </div>
+
+        <div class="membermedals-summary-grid membermedals-summary-grid-ucp">
+            <div class="membermedals-summary-card">
+                <span class="membermedals-summary-label">{L_MEMBERMEDALS_TOTAL_EARNED}</span>
+                <strong class="membermedals-summary-value">{UCP_MEMBERMEDALS_TOTAL}</strong>
+            </div>
+            <div class="membermedals-summary-card">
+                <span class="membermedals-summary-label">{L_UCP_MEMBERMEDALS_FEATURED_LABEL}</span>
+                <strong class="membermedals-summary-value">{UCP_MEMBERMEDALS_FEATURED_TOTAL} / {UCP_MEMBERMEDALS_FEATURED_LIMIT}</strong>
+            </div>
+        </div>
+
+        <div class="membermedals-featured-help">
+            {UCP_MEMBERMEDALS_FEATURED_EXPLAIN}
+        </div>
+
+        <form id="ucp_membermedals_featured" method="post" action="{U_ACTION}">
+            <div class="membermedals-grid membermedals-grid-ucp">
+                <!-- BEGIN awards -->
+                <article class="membermedals-card<!-- IF awards.S_FEATURED --> membermedals-card-featured<!-- ENDIF --><!-- IF awards.S_USER_FEATURED --> membermedals-card-user-featured<!-- ENDIF -->">
+                    <div class="membermedals-image"><!-- IF awards.MEDAL_IMAGE --><img src="{awards.MEDAL_IMAGE}" alt="{awards.MEDAL_NAME}" /><!-- ELSE --><span class="membermedals-fallback-large">🏅</span><!-- ENDIF --></div>
+                    <div class="membermedals-content">
+                        <h3><a href="{awards.U_VIEW_MEDAL}">{awards.MEDAL_NAME}</a></h3>
+                        <!-- IF awards.MEDAL_DESCRIPTION --><p>{awards.MEDAL_DESCRIPTION}</p><!-- ENDIF -->
+                    </div>
+                    <div class="membermedals-meta">
+                        <span>{L_MEMBERMEDALS_DATE_LABEL}{L_COLON} {awards.AWARDED_AT}</span>
+                        <span>{L_MEMBERMEDALS_AWARD_SOURCE}{L_COLON} {awards.AWARD_SOURCE}</span>
+                    </div>
+                    <div class="membermedals-featured-controls">
+                        <label class="membermedals-featured-toggle">
+                            <input class="membermedals-featured-checkbox" type="checkbox" name="featured_medals[]" value="{awards.MEDAL_ID}"<!-- IF awards.S_USER_FEATURED --> checked="checked"<!-- ENDIF --> />
+                            <span>{L_UCP_MEMBERMEDALS_MARK_FEATURED}</span>
+                        </label>
+                        <label class="membermedals-featured-order-label">
+                            <span>{L_UCP_MEMBERMEDALS_FEATURED_ORDER}</span>
+                            <select class="membermedals-featured-order" name="featured_order[{awards.MEDAL_ID}]"<!-- IF not awards.S_USER_FEATURED --> disabled="disabled"<!-- ENDIF -->>
+                                <!-- BEGIN featured_order_options -->
+                                <option value="{featured_order_options.VALUE}"<!-- IF featured_order_options.VALUE == awards.FEATURED_ORDER --> selected="selected"<!-- ENDIF -->>{featured_order_options.VALUE}</option>
+                                <!-- END featured_order_options -->
+                            </select>
+                        </label>
+                    </div>
+                </article>
+                <!-- BEGINELSE -->
+                <p>{L_UCP_MEMBERMEDALS_EMPTY}</p>
+                <!-- END awards -->
+            </div>
+
+            <!-- IF .awards -->
+            <fieldset class="submit-buttons">
+                <input class="button1" type="submit" name="submit_featured" value="{L_UCP_MEMBERMEDALS_SAVE_FEATURED}" />
+                {S_FORM_TOKEN}
+            </fieldset>
+            <!-- ENDIF -->
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var controlsList = document.querySelectorAll('.membermedals-featured-controls');
+    controlsList.forEach(function (controls) {
+        var checkbox = controls.querySelector('.membermedals-featured-checkbox');
+        var select = controls.querySelector('.membermedals-featured-order');
+        if (!checkbox || !select) {
+            return;
+        }
+        var syncState = function () {
+            select.disabled = !checkbox.checked;
+            controls.classList.toggle('is-selected', checkbox.checked);
+        };
+        checkbox.addEventListener('change', syncState);
+        syncState();
+    });
+});
+</script>
+<!-- INCLUDE overall_footer.html -->

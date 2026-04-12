@@ -1,0 +1,779 @@
+<!-- INCLUDE overall_header.html -->
+
+<a id="maincontent"></a>
+
+<style>
+.membermedals-acp-preview {
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid #d9d9d9;
+    background: #f8f8f8;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    max-width: 180px;
+    text-align: center;
+}
+.membermedals-acp-preview img {
+    max-width: 72px;
+    max-height: 72px;
+    width: auto;
+    height: auto;
+    display: block;
+}
+.membermedals-acp-preview .membermedals-acp-preview-fallback {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #b3b3b3;
+    background: #fff;
+    font-size: 28px;
+}
+.membermedals-acp-preview strong {
+    display: block;
+    margin: 0;
+    max-width: 150px;
+    word-break: break-word;
+}
+.membermedals-acp-preview.is-empty .membermedals-acp-preview-text {
+    display: none;
+}
+.membermedals-existing-medal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.membermedals-existing-medal-media {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.membermedals-existing-medal-media img {
+    max-width: 32px;
+    max-height: 32px;
+    width: auto;
+    height: auto;
+    display: block;
+}
+.membermedals-existing-medal-fallback {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #b3b3b3;
+    background: #fff;
+    font-size: 16px;
+}
+.membermedals-existing-medal-text {
+    min-width: 0;
+}
+
+.membermedals-acp-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 10px 0 14px;
+}
+.membermedals-acp-summary-item {
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    padding: 10px 12px;
+}
+.membermedals-acp-summary-label {
+    display: block;
+    color: #666;
+    font-size: 11px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+.membermedals-acp-summary-value {
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+}
+.membermedals-acp-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: end;
+}
+.membermedals-acp-filters label {
+    display: block;
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 3px;
+}
+.membermedals-acp-filters input[type="text"],
+.membermedals-acp-filters select {
+    min-width: 160px;
+}
+.membermedals-acp-status-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid #c9c9c9;
+    background: #f3f3f3;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.membermedals-acp-status-badge.is-on {
+    border-color: #6eaa6e;
+    background: #edf7ed;
+}
+.membermedals-acp-status-badge.is-off {
+    border-color: #d5a3a3;
+    background: #fbefef;
+}
+.membermedals-acp-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.membermedals-acp-muted {
+    color: #666;
+    font-size: 11px;
+}
+.membermedals-acp-nowrap { white-space: nowrap; }
+
+</style>
+
+<!-- IF S_MODE_SETTINGS -->
+    <h1>{L_ACP_MEMBERMEDALS_SETTINGS}</h1>
+    <p>{L_ACP_MEMBERMEDALS_SETTINGS_EXPLAIN}</p>
+
+    <form id="acp_membermedals_settings" method="post" action="{U_ACTION}">
+        <fieldset>
+            <legend>{L_ACP_MEMBERMEDALS_SETTINGS}</legend>
+
+            <dl>
+                <dt><label for="membermedals_enabled">{L_ACP_MEMBERMEDALS_ENABLED}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_ENABLED_EXPLAIN}</span></dt>
+                <dd>
+                    <label><input type="radio" name="membermedals_enabled" value="1"<!-- IF MEMBERMEDALS_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="membermedals_enabled" value="0"<!-- IF not MEMBERMEDALS_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_public_page">{L_ACP_MEMBERMEDALS_PUBLIC_PAGE}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_PUBLIC_PAGE_EXPLAIN}</span></dt>
+                <dd>
+                    <label><input type="radio" name="membermedals_public_page" value="1"<!-- IF MEMBERMEDALS_PUBLIC_PAGE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="membermedals_public_page" value="0"<!-- IF not MEMBERMEDALS_PUBLIC_PAGE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_notify">{L_ACP_MEMBERMEDALS_NOTIFY}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_NOTIFY_EXPLAIN}</span></dt>
+                <dd>
+                    <label><input type="radio" name="membermedals_notify" value="1"<!-- IF MEMBERMEDALS_NOTIFY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="membermedals_notify" value="0"<!-- IF not MEMBERMEDALS_NOTIFY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_viewtopic_limit">{L_ACP_MEMBERMEDALS_VIEWTOPIC_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_VIEWTOPIC_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" max="20" id="membermedals_viewtopic_limit" name="membermedals_viewtopic_limit" value="{MEMBERMEDALS_VIEWTOPIC_LIMIT}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_featured_limit">{L_ACP_MEMBERMEDALS_FEATURED_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_FEATURED_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="1" max="8" id="membermedals_featured_limit" name="membermedals_featured_limit" value="{MEMBERMEDALS_FEATURED_LIMIT}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_public_recent_limit">{L_ACP_MEMBERMEDALS_PUBLIC_RECENT_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_PUBLIC_RECENT_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" max="20" id="membermedals_public_recent_limit" name="membermedals_public_recent_limit" value="{MEMBERMEDALS_PUBLIC_RECENT_LIMIT}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_public_top_members_limit">{L_ACP_MEMBERMEDALS_PUBLIC_TOP_MEMBERS_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_PUBLIC_TOP_MEMBERS_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" max="20" id="membermedals_public_top_members_limit" name="membermedals_public_top_members_limit" value="{MEMBERMEDALS_PUBLIC_TOP_MEMBERS_LIMIT}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_public_extremes_limit">{L_ACP_MEMBERMEDALS_PUBLIC_EXTREMES_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_PUBLIC_EXTREMES_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" max="20" id="membermedals_public_extremes_limit" name="membermedals_public_extremes_limit" value="{MEMBERMEDALS_PUBLIC_EXTREMES_LIMIT}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="membermedals_public_winners_limit">{L_ACP_MEMBERMEDALS_PUBLIC_WINNERS_LIMIT}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_PUBLIC_WINNERS_LIMIT_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" max="100" id="membermedals_public_winners_limit" name="membermedals_public_winners_limit" value="{MEMBERMEDALS_PUBLIC_WINNERS_LIMIT}" /></dd>
+            </dl>
+        </fieldset>
+
+        <fieldset class="submit-buttons">
+            <input class="button1" type="submit" name="submit" value="{L_SUBMIT}" />
+            {S_FORM_TOKEN}
+        </fieldset>
+    </form>
+<!-- ENDIF -->
+
+<!-- IF S_MODE_MEDALS -->
+    <h1>{L_ACP_MEMBERMEDALS_MEDALS}</h1>
+    <p>{L_ACP_MEMBERMEDALS_MEDALS_EXPLAIN}</p>
+
+    <div class="membermedals-acp-summary">
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_TOTAL}</span><span class="membermedals-acp-summary-value">{MEDAL_STATS_TOTAL}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_ACTIVE}</span><span class="membermedals-acp-summary-value">{MEDAL_STATS_ACTIVE}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_INACTIVE}</span><span class="membermedals-acp-summary-value">{MEDAL_STATS_INACTIVE}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_FEATURED}</span><span class="membermedals-acp-summary-value">{MEDAL_STATS_FEATURED}</span></div>
+    </div>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_APPLY_FILTERS}</legend>
+        <form method="get" action="{U_ACTION}" class="membermedals-acp-filters">
+            <div>
+                <label for="medal_filter_keywords">{L_ACP_MEMBERMEDALS_FILTER_KEYWORDS}</label>
+                <input type="text" id="medal_filter_keywords" name="keywords" value="{MEDAL_FILTER_KEYWORDS}" />
+            </div>
+            <div>
+                <label for="medal_filter_status">{L_ACP_MEMBERMEDALS_FILTER_STATUS}</label>
+                <select id="medal_filter_status" name="status_filter">
+                    <option value="all"<!-- IF MEDAL_FILTER_STATUS == 'all' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_ALL}</option>
+                    <option value="active"<!-- IF MEDAL_FILTER_STATUS == 'active' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_ACTIVE}</option>
+                    <option value="inactive"<!-- IF MEDAL_FILTER_STATUS == 'inactive' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_INACTIVE}</option>
+                </select>
+            </div>
+            <div>
+                <input class="button1" type="submit" value="{L_ACP_MEMBERMEDALS_APPLY_FILTERS}" />
+                <a class="button2" href="{U_MEDALS_RESET_FILTERS}">{L_ACP_MEMBERMEDALS_RESET_FILTERS}</a>
+            </div>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend><!-- IF S_EDIT_MEDAL -->{L_ACP_MEMBERMEDALS_EDIT_MEDAL}<!-- ELSE -->{L_ACP_MEMBERMEDALS_ADD_MEDAL}<!-- ENDIF --></legend>
+
+        <!-- IF S_EDIT_MEDAL -->
+        <p class="membermedals-acp-muted"><strong>{L_ACP_MEMBERMEDALS_EDIT_MEDAL}:</strong> {EDIT_MEDAL_NAME} &nbsp; <a class="button2" href="{U_ACTION}">{L_ACP_MEMBERMEDALS_ADD_MEDAL}</a></p>
+        <!-- ENDIF -->
+
+        <form id="acp_membermedals_medal" method="post" action="{U_ACTION}" enctype="multipart/form-data">
+            <input type="hidden" name="medal_id" value="{EDIT_MEDAL_ID}" />
+
+            <dl>
+                <dt><label for="medal_name">{L_ACP_MEMBERMEDALS_MEDAL_NAME}{L_COLON}</label></dt>
+                <dd><input type="text" class="medium" id="medal_name" name="medal_name" value="{EDIT_MEDAL_NAME}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="medal_description">{L_ACP_MEMBERMEDALS_MEDAL_DESCRIPTION}{L_COLON}</label></dt>
+                <dd><textarea id="medal_description" name="medal_description" rows="5" cols="60">{EDIT_MEDAL_DESCRIPTION}</textarea></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="medal_image">{L_ACP_MEMBERMEDALS_MEDAL_IMAGE}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_MEDAL_IMAGE_EXPLAIN}</span></dt>
+                <dd>
+                    <input type="text" class="medium" id="medal_image" name="medal_image" value="{EDIT_MEDAL_IMAGE}" />
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="medal_image_upload">{L_ACP_MEMBERMEDALS_MEDAL_IMAGE_UPLOAD}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_MEDAL_IMAGE_UPLOAD_EXPLAIN}</span></dt>
+                <dd><input type="file" id="medal_image_upload" name="medal_image_upload" accept=".png,.jpg,.jpeg,.gif,.webp" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_PREVIEW}{L_COLON}</label></dt>
+                <dd>
+                    <div id="membermedals-medal-preview" class="membermedals-acp-preview<!-- IF not EDIT_MEDAL_NAME and not EDIT_MEDAL_DESCRIPTION and not EDIT_MEDAL_IMAGE_URL --> is-empty<!-- ENDIF -->">
+                        <div>
+                            <img id="membermedals-medal-preview-image" src="{EDIT_MEDAL_IMAGE_URL}<!-- IF EDIT_MEDAL_IMAGE_URL -->?v={EDIT_MEDAL_IMAGE_CACHE}<!-- ENDIF -->" alt="{EDIT_MEDAL_NAME}"<!-- IF not EDIT_MEDAL_IMAGE_URL --> style="display:none;"<!-- ENDIF --> />
+                            <div id="membermedals-medal-preview-fallback" class="membermedals-acp-preview-fallback"<!-- IF EDIT_MEDAL_IMAGE_URL --> style="display:none;"<!-- ENDIF -->>🏅</div>
+                        </div>
+                        <div class="membermedals-acp-preview-text">
+                            <strong id="membermedals-medal-preview-name"><!-- IF EDIT_MEDAL_NAME -->{EDIT_MEDAL_NAME}<!-- ENDIF --></strong>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
+            <!-- IF EDIT_MEDAL_IMAGE -->
+            <dl>
+                <dt><label for="remove_medal_image">{L_ACP_MEMBERMEDALS_REMOVE_IMAGE}{L_COLON}</label></dt>
+                <dd><label><input type="checkbox" id="remove_medal_image" name="remove_medal_image" value="1" /> {L_ACP_MEMBERMEDALS_REMOVE_IMAGE_EXPLAIN}</label></dd>
+            </dl>
+            <!-- ENDIF -->
+
+            <dl>
+                <dt><label for="medal_display_order">{L_ACP_MEMBERMEDALS_MEDAL_ORDER}{L_COLON}</label></dt>
+                <dd><input type="number" min="0" id="medal_display_order" name="medal_display_order" value="{EDIT_MEDAL_DISPLAY_ORDER}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_MEDAL_ACTIVE}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="medal_active" value="1"<!-- IF EDIT_MEDAL_ACTIVE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="medal_active" value="0"<!-- IF not EDIT_MEDAL_ACTIVE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_MEDAL_HIDDEN}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="medal_hidden" value="1"<!-- IF EDIT_MEDAL_HIDDEN --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="medal_hidden" value="0"<!-- IF not EDIT_MEDAL_HIDDEN --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_MEDAL_FEATURED}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="medal_featured" value="1"<!-- IF EDIT_MEDAL_FEATURED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="medal_featured" value="0"<!-- IF not EDIT_MEDAL_FEATURED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <fieldset class="submit-buttons">
+                <input class="button1" type="submit" name="submit_medal" value="{L_SUBMIT}" />
+                <!-- IF S_EDIT_MEDAL --><input class="button2" type="submit" name="submit_medal_continue" value="{L_ACP_MEMBERMEDALS_EDIT_MEDAL}" /><!-- ENDIF -->
+                <a class="button2" href="{U_ACTION}">{L_ACP_MEMBERMEDALS_ADD_MEDAL}</a>
+                {S_FORM_TOKEN}
+            </fieldset>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_EXISTING_MEDALS}</legend>
+
+        <table class="table1 zebra-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_MEMBERMEDALS_MEDAL_NAME}</th>
+                    <th>{L_ACP_MEMBERMEDALS_AWARD_COUNT}</th>
+                    <th>{L_ACP_MEMBERMEDALS_RULE_COUNT}</th>
+                    <th>{L_ACP_MEMBERMEDALS_MEDAL_ORDER}</th>
+                    <th>{L_STATUS}</th>
+                    <th>{L_ACTION}</th>
+                </tr>
+            </thead>
+            <tbody>
+            <!-- BEGIN medals -->
+                <tr>
+                    <td>
+                        <div class="membermedals-existing-medal">
+                            <span class="membermedals-existing-medal-media">
+                                <!-- IF medals.MEDAL_IMAGE_URL -->
+                                    <img src="{medals.MEDAL_IMAGE_URL}?v={medals.MEDAL_IMAGE_CACHE}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+                                <!-- ENDIF -->
+                                <span class="membermedals-existing-medal-fallback"<!-- IF medals.MEDAL_IMAGE_URL --> style="display:none;"<!-- ENDIF -->>🏅</span>
+                            </span>
+                            <span class="membermedals-existing-medal-text">
+                                <strong>{medals.MEDAL_NAME}</strong><br />
+                                <span class="membermedals-acp-muted">{medals.MEDAL_DESCRIPTION}</span><br />
+                                <span class="membermedals-acp-muted">{medals.MEDAL_IMAGE}</span>
+                            </span>
+                        </div>
+                    </td>
+                    <td class="membermedals-acp-nowrap">{medals.AWARD_COUNT}</td>
+                    <td class="membermedals-acp-nowrap">{medals.RULE_COUNT}</td>
+                    <td class="membermedals-acp-nowrap">{medals.MEDAL_ORDER}</td>
+                    <td>
+                        <span class="membermedals-acp-status-badge<!-- IF medals.MEDAL_ACTIVE --> is-on<!-- ELSE --> is-off<!-- ENDIF -->"><!-- IF medals.MEDAL_ACTIVE -->{L_ACP_MEMBERMEDALS_ACTIVE}<!-- ELSE -->{L_ACP_MEMBERMEDALS_INACTIVE}<!-- ENDIF --></span>
+                        <!-- IF medals.MEDAL_HIDDEN --> <span class="membermedals-acp-status-badge">{L_ACP_MEMBERMEDALS_MEDAL_HIDDEN}</span><!-- ENDIF -->
+                        <!-- IF medals.MEDAL_FEATURED --> <span class="membermedals-acp-status-badge">{L_ACP_MEMBERMEDALS_FEATURED}</span><!-- ENDIF -->
+                    </td>
+                    <td>
+                        <div class="membermedals-acp-action-row">
+                            <a href="{medals.U_EDIT}">{L_EDIT}</a>
+                            <a href="{medals.U_TOGGLE}"><!-- IF medals.MEDAL_ACTIVE -->{L_ACP_MEMBERMEDALS_QUICK_DISABLE}<!-- ELSE -->{L_ACP_MEMBERMEDALS_QUICK_ENABLE}<!-- ENDIF --></a>
+                            <a href="{medals.U_DELETE}">{L_DELETE}</a>
+                        </div>
+                    </td>
+                </tr>
+            <!-- BEGINELSE -->
+                <tr>
+                    <td colspan="6">{L_ACP_MEMBERMEDALS_NO_MEDALS}</td>
+                </tr>
+            <!-- END medals -->
+            </tbody>
+        </table>
+    </fieldset>
+<!-- ENDIF -->
+
+<!-- IF S_MODE_RULES -->
+    <h1>{L_ACP_MEMBERMEDALS_RULES}</h1>
+    <p>{L_ACP_MEMBERMEDALS_RULES_EXPLAIN}</p>
+
+    <div class="membermedals-acp-summary">
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_TOTAL}</span><span class="membermedals-acp-summary-value">{RULE_STATS_TOTAL}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_FILTER_ENABLED}</span><span class="membermedals-acp-summary-value">{RULE_STATS_ENABLED}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_FILTER_DISABLED}</span><span class="membermedals-acp-summary-value">{RULE_STATS_DISABLED}</span></div>
+        <div class="membermedals-acp-summary-item"><span class="membermedals-acp-summary-label">{L_ACP_MEMBERMEDALS_TOPIC_RULES}</span><span class="membermedals-acp-summary-value">{RULE_STATS_TOPICS}</span></div>
+    </div>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_APPLY_FILTERS}</legend>
+        <form method="get" action="{U_ACTION}" class="membermedals-acp-filters">
+            <div>
+                <label for="rule_filter_keywords">{L_ACP_MEMBERMEDALS_FILTER_KEYWORDS}</label>
+                <input type="text" id="rule_filter_keywords" name="keywords" value="{RULE_FILTER_KEYWORDS}" />
+            </div>
+            <div>
+                <label for="rule_filter_type">{L_ACP_MEMBERMEDALS_FILTER_TYPE}</label>
+                <select id="rule_filter_type" name="rule_type_filter">
+                    <option value="all"<!-- IF RULE_FILTER_TYPE == 'all' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_ALL}</option>
+                    <!-- BEGIN rule_types -->
+                        <option value="{rule_types.RULE_TYPE_KEY}"<!-- IF RULE_FILTER_TYPE == rule_types.RULE_TYPE_KEY --> selected="selected"<!-- ENDIF -->>{rule_types.RULE_TYPE_LANG}</option>
+                    <!-- END rule_types -->
+                </select>
+            </div>
+            <div>
+                <label for="rule_filter_enabled">{L_ACP_MEMBERMEDALS_FILTER_STATUS}</label>
+                <select id="rule_filter_enabled" name="enabled_filter">
+                    <option value="all"<!-- IF RULE_FILTER_ENABLED == 'all' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_ALL}</option>
+                    <option value="enabled"<!-- IF RULE_FILTER_ENABLED == 'enabled' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_ENABLED}</option>
+                    <option value="disabled"<!-- IF RULE_FILTER_ENABLED == 'disabled' --> selected="selected"<!-- ENDIF -->>{L_ACP_MEMBERMEDALS_FILTER_DISABLED}</option>
+                </select>
+            </div>
+            <div>
+                <input class="button1" type="submit" value="{L_ACP_MEMBERMEDALS_APPLY_FILTERS}" />
+                <a class="button2" href="{U_RULES_RESET_FILTERS}">{L_ACP_MEMBERMEDALS_RESET_FILTERS}</a>
+            </div>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend><!-- IF S_EDIT_RULE -->{L_ACP_MEMBERMEDALS_EDIT_RULE}<!-- ELSE -->{L_ACP_MEMBERMEDALS_ADD_RULE}<!-- ENDIF --></legend>
+
+        <form id="acp_membermedals_rule" method="post" action="{U_ACTION}">
+            <input type="hidden" name="rule_id" value="{EDIT_RULE_ID}" />
+
+            <dl>
+                <dt><label for="medal_id">{L_ACP_MEMBERMEDALS_SELECT_MEDAL}{L_COLON}</label></dt>
+                <dd>
+                    <!-- IF S_HAS_RULE_MEDALS -->
+                    <select id="medal_id" name="medal_id">
+                        <!-- BEGIN rule_medals -->
+                            <option value="{rule_medals.MEDAL_ID}" data-image="{rule_medals.MEDAL_IMAGE_URL}<!-- IF rule_medals.MEDAL_IMAGE_URL -->?v={rule_medals.MEDAL_IMAGE_CACHE}<!-- ENDIF -->" data-description="{rule_medals.MEDAL_DESCRIPTION}"<!-- IF rule_medals.S_SELECTED --> selected="selected"<!-- ENDIF -->>{rule_medals.MEDAL_NAME}</option>
+                        <!-- END rule_medals -->
+                    </select>
+                    <!-- ELSE -->
+                    <span>{L_ACP_MEMBERMEDALS_NO_MEDALS_AVAILABLE}</span>
+                    <!-- ENDIF -->
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_PREVIEW}{L_COLON}</label></dt>
+                <dd>
+                    <div id="membermedals-rule-preview" class="membermedals-acp-preview<!-- IF not RULE_PREVIEW_MEDAL_NAME and not RULE_PREVIEW_MEDAL_DESC and not RULE_PREVIEW_MEDAL_IMAGE --> is-empty<!-- ENDIF -->">
+                        <div>
+                            <img id="membermedals-rule-preview-image" src="{RULE_PREVIEW_MEDAL_IMAGE}<!-- IF RULE_PREVIEW_MEDAL_IMAGE -->?v={RULE_PREVIEW_MEDAL_IMAGE_CACHE}<!-- ENDIF -->" alt="{RULE_PREVIEW_MEDAL_NAME}"<!-- IF not RULE_PREVIEW_MEDAL_IMAGE --> style="display:none;"<!-- ENDIF --> />
+                            <div id="membermedals-rule-preview-fallback" class="membermedals-acp-preview-fallback"<!-- IF RULE_PREVIEW_MEDAL_IMAGE --> style="display:none;"<!-- ENDIF -->>🏅</div>
+                        </div>
+                        <div class="membermedals-acp-preview-text">
+                            <strong id="membermedals-rule-preview-name"><!-- IF RULE_PREVIEW_MEDAL_NAME -->{RULE_PREVIEW_MEDAL_NAME}<!-- ELSE -->{L_ACP_MEMBERMEDALS_PREVIEW_EMPTY}<!-- ENDIF --></strong>
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="rule_type">{L_ACP_MEMBERMEDALS_RULE_TYPE}{L_COLON}</label></dt>
+                <dd>
+                    <select id="rule_type" name="rule_type">
+                        <!-- BEGIN rule_types -->
+                            <option value="{rule_types.RULE_TYPE_KEY}"<!-- IF rule_types.S_SELECTED --> selected="selected"<!-- ENDIF -->>{rule_types.RULE_TYPE_LANG}</option>
+                        <!-- END rule_types -->
+                    </select>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="rule_operator">{L_ACP_MEMBERMEDALS_RULE_OPERATOR}{L_COLON}</label></dt>
+                <dd>
+                    <select id="rule_operator" name="rule_operator">
+                        <option value=">="<!-- IF EDIT_RULE_OPERATOR == '>=' --> selected="selected"<!-- ENDIF -->>&gt;=</option>
+                        <option value=">"<!-- IF EDIT_RULE_OPERATOR == '>' --> selected="selected"<!-- ENDIF -->>&gt;</option>
+                        <option value="="<!-- IF EDIT_RULE_OPERATOR == '=' --> selected="selected"<!-- ENDIF -->>=</option>
+                        <option value="<="<!-- IF EDIT_RULE_OPERATOR == '<=' --> selected="selected"<!-- ENDIF -->>&lt;=</option>
+                        <option value="<"<!-- IF EDIT_RULE_OPERATOR == '<' --> selected="selected"<!-- ENDIF -->>&lt;</option>
+                    </select>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="rule_value">{L_ACP_MEMBERMEDALS_RULE_VALUE}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN}</span></dt>
+                <dd><input type="number" min="0" id="rule_value" name="rule_value" value="{EDIT_RULE_VALUE}" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_RULE_ENABLED}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="rule_enabled" value="1"<!-- IF EDIT_RULE_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="rule_enabled" value="0"<!-- IF not EDIT_RULE_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label>{L_ACP_MEMBERMEDALS_RULE_NOTIFY}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="rule_notify" value="1"<!-- IF EDIT_RULE_NOTIFY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                    <label><input type="radio" name="rule_notify" value="0"<!-- IF not EDIT_RULE_NOTIFY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+                </dd>
+            </dl>
+
+            <fieldset class="submit-buttons">
+                <input class="button1" type="submit" name="submit_rule" value="{L_SUBMIT}"<!-- IF not S_HAS_RULE_MEDALS --> disabled="disabled"<!-- ENDIF --> />
+                <!-- IF S_EDIT_RULE --><a class="button2" href="{U_ACTION}">{L_CANCEL}</a><!-- ENDIF -->
+                {S_FORM_TOKEN}
+            </fieldset>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_EXISTING_RULES}</legend>
+        <p>
+            <a class="button1" href="{U_RULES_SYNC_ALL}">{L_ACP_MEMBERMEDALS_SYNC_ALL_RULES}</a>
+            <a class="button2" href="{U_RULES_SYNC_FILTERED}">{L_ACP_MEMBERMEDALS_SYNC_FILTERED_RULES}</a>
+        </p>
+        <table class="table1 zebra-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_MEMBERMEDALS_MEDAL_NAME}</th>
+                    <th>{L_ACP_MEMBERMEDALS_RULE_TYPE}</th>
+                    <th>{L_ACP_MEMBERMEDALS_CONDITION}</th>
+                    <th>{L_ACP_MEMBERMEDALS_MATCHED_AWARDS}</th>
+                    <th>{L_STATUS}</th>
+                    <th>{L_ACTION}</th>
+                </tr>
+            </thead>
+            <tbody>
+            <!-- BEGIN rules -->
+                <tr>
+                    <td>{rules.MEDAL_NAME}</td>
+                    <td>{rules.RULE_TYPE_LANG}</td>
+                    <td class="membermedals-acp-nowrap">{rules.RULE_OPERATOR} {rules.RULE_VALUE}</td>
+                    <td class="membermedals-acp-nowrap">{rules.AWARD_COUNT}</td>
+                    <td><span class="membermedals-acp-status-badge<!-- IF rules.RULE_ENABLED --> is-on<!-- ELSE --> is-off<!-- ENDIF -->"><!-- IF rules.RULE_ENABLED -->{L_ACP_MEMBERMEDALS_FILTER_ENABLED}<!-- ELSE -->{L_ACP_MEMBERMEDALS_FILTER_DISABLED}<!-- ENDIF --></span></td>
+                    <td>
+                        <div class="membermedals-acp-action-row">
+                            <a href="{rules.U_EDIT}">{L_EDIT}</a>
+                            <a href="{rules.U_TOGGLE}"><!-- IF rules.RULE_ENABLED -->{L_ACP_MEMBERMEDALS_QUICK_DISABLE}<!-- ELSE -->{L_ACP_MEMBERMEDALS_QUICK_ENABLE}<!-- ENDIF --></a>
+                            <a href="{rules.U_SYNC}">{L_ACP_MEMBERMEDALS_SYNC_RULE}</a>
+                            <a href="{rules.U_DELETE}">{L_DELETE}</a>
+                        </div>
+                    </td>
+                </tr>
+            <!-- BEGINELSE -->
+                <tr>
+                    <td colspan="6">{L_ACP_MEMBERMEDALS_NO_RULES}</td>
+                </tr>
+            <!-- END rules -->
+            </tbody>
+        </table>
+    </fieldset>
+<!-- ENDIF -->
+
+<!-- IF S_MODE_AWARDS -->
+    <h1>{L_ACP_MEMBERMEDALS_AWARDS}</h1>
+    <p>{L_ACP_MEMBERMEDALS_AWARDS_EXPLAIN}</p>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_MANUAL_AWARD}</legend>
+
+        <form id="acp_membermedals_award" method="post" action="{U_ACTION}">
+            <dl>
+                <dt><label for="username">{L_USERNAME}{L_COLON}</label></dt>
+                <dd><input type="text" class="medium" id="username" name="username" value="" /></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="award_medal_id">{L_ACP_MEMBERMEDALS_SELECT_MEDAL}{L_COLON}</label></dt>
+                <dd>
+                    <select id="award_medal_id" name="award_medal_id">
+                        <!-- BEGIN award_medals -->
+                            <option value="{award_medals.MEDAL_ID}">{award_medals.MEDAL_NAME}</option>
+                        <!-- END award_medals -->
+                    </select>
+                </dd>
+            </dl>
+
+            <dl>
+                <dt><label for="award_reason">{L_ACP_MEMBERMEDALS_AWARD_REASON}{L_COLON}</label></dt>
+                <dd><textarea id="award_reason" name="award_reason" rows="4" cols="60"></textarea></dd>
+            </dl>
+
+            <dl>
+                <dt><label for="award_action">{L_ACTION}{L_COLON}</label></dt>
+                <dd>
+                    <label><input type="radio" name="award_action" value="grant" checked="checked" /> {L_ACP_MEMBERMEDALS_GRANT}</label>
+                    <label><input type="radio" name="award_action" value="remove" /> {L_ACP_MEMBERMEDALS_REMOVE}</label>
+                </dd>
+            </dl>
+
+            <fieldset class="submit-buttons">
+                <input class="button1" type="submit" name="submit_award" value="{L_SUBMIT}" />
+                {S_FORM_TOKEN}
+            </fieldset>
+        </form>
+    </fieldset>
+
+    <fieldset>
+        <legend>{L_ACP_MEMBERMEDALS_RECENT_AWARDS}</legend>
+        <table class="table1 zebra-table">
+            <thead>
+                <tr>
+                    <th>{L_USERNAME}</th>
+                    <th>{L_ACP_MEMBERMEDALS_MEDAL_NAME}</th>
+                    <th>{L_ACP_MEMBERMEDALS_AWARD_SOURCE}</th>
+                    <th>{L_ACP_MEMBERMEDALS_AWARD_REASON}</th>
+                    <th>{L_DATE}</th>
+                </tr>
+            </thead>
+            <tbody>
+            <!-- BEGIN recent_awards -->
+                <tr>
+                    <td>{recent_awards.USERNAME}</td>
+                    <td>{recent_awards.MEDAL_NAME}</td>
+                    <td>{recent_awards.AWARD_SOURCE}</td>
+                    <td>{recent_awards.AWARD_REASON}</td>
+                    <td>{recent_awards.AWARDED_AT}</td>
+                </tr>
+            <!-- BEGINELSE -->
+                <tr>
+                    <td colspan="5">{L_ACP_MEMBERMEDALS_NO_AWARDS}</td>
+                </tr>
+            <!-- END recent_awards -->
+            </tbody>
+        </table>
+    </fieldset>
+<!-- ENDIF -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var boardUrl = '{MEMBERMEDALS_BOARD_URL}';
+
+    function resolvePreviewUrl(value) {
+        if (!value) {
+            return '';
+        }
+        if (/^(https?:)?\/\//i.test(value) || value.indexOf('data:') === 0) {
+            return value;
+        }
+        if (value.charAt(0) === '/') {
+            return value;
+        }
+        return boardUrl + value.replace(/^\/+/, '');
+    }
+
+    var medalName = document.getElementById('medal_name');
+    var medalDesc = document.getElementById('medal_description');
+    var medalImage = document.getElementById('medal_image');
+    var medalUpload = document.getElementById('medal_image_upload');
+    var medalPreview = document.getElementById('membermedals-medal-preview');
+    var medalPreviewImg = document.getElementById('membermedals-medal-preview-image');
+    var medalPreviewFallback = document.getElementById('membermedals-medal-preview-fallback');
+    var medalPreviewName = document.getElementById('membermedals-medal-preview-name');
+    function bindPreviewImage(img, fallback) {
+        if (!img || !fallback) {
+            return;
+        }
+        img.onerror = function () {
+            img.removeAttribute('src');
+            img.style.display = 'none';
+            fallback.style.display = '';
+        };
+        img.onload = function () {
+            if (img.getAttribute('src')) {
+                img.style.display = '';
+                fallback.style.display = 'none';
+            }
+        };
+    }
+
+    bindPreviewImage(medalPreviewImg, medalPreviewFallback);
+
+    function updateMedalPreview(srcOverride) {
+        if (!medalPreview) {
+            return;
+        }
+        var name = medalName && medalName.value ? medalName.value : ''; 
+        var src = srcOverride || resolvePreviewUrl(medalImage && medalImage.value ? medalImage.value : '');
+
+        medalPreviewName.textContent = name || '';
+        medalPreviewName.style.display = name ? '' : 'none';
+        medalPreview.classList.toggle('is-empty', !(medalName && medalName.value) && !(medalDesc && medalDesc.value) && !src);
+
+        if (src) {
+            medalPreviewImg.src = src;
+            medalPreviewImg.style.display = '';
+            medalPreviewFallback.style.display = 'none';
+        } else {
+            medalPreviewImg.removeAttribute('src');
+            medalPreviewImg.style.display = 'none';
+            medalPreviewFallback.style.display = '';
+        }
+    }
+
+    if (medalName) {
+        medalName.addEventListener('input', function () { updateMedalPreview(); });
+    }
+    if (medalDesc) {
+        medalDesc.addEventListener('input', function () { updateMedalPreview(); });
+    }
+    if (medalImage) {
+        medalImage.addEventListener('input', function () { updateMedalPreview(); });
+    }
+    if (medalUpload) {
+        medalUpload.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    updateMedalPreview(e.target.result || '');
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                updateMedalPreview();
+            }
+        });
+    }
+
+    var ruleSelect = document.getElementById('medal_id');
+    var rulePreview = document.getElementById('membermedals-rule-preview');
+    var rulePreviewImg = document.getElementById('membermedals-rule-preview-image');
+    var rulePreviewFallback = document.getElementById('membermedals-rule-preview-fallback');
+    var rulePreviewName = document.getElementById('membermedals-rule-preview-name');
+
+    bindPreviewImage(rulePreviewImg, rulePreviewFallback);
+
+    function updateRulePreview() {
+        if (!ruleSelect || !rulePreview) {
+            return;
+        }
+        var option = ruleSelect.options[ruleSelect.selectedIndex];
+        var image = option ? resolvePreviewUrl(option.getAttribute('data-image') || '') : '';
+        var name = option ? option.text : ''; 
+
+        rulePreviewName.textContent = name || '';
+        rulePreviewName.style.display = name ? '' : 'none';
+        rulePreview.classList.toggle('is-empty', !name && !image);
+
+        if (image) {
+            rulePreviewImg.src = image;
+            rulePreviewImg.style.display = '';
+            rulePreviewFallback.style.display = 'none';
+        } else {
+            rulePreviewImg.removeAttribute('src');
+            rulePreviewImg.style.display = 'none';
+            rulePreviewFallback.style.display = '';
+        }
+    }
+
+    if (ruleSelect) {
+        ruleSelect.addEventListener('change', updateRulePreview);
+        updateRulePreview();
+    }
+
+    updateMedalPreview();
+});
+</script>
+
+<!-- INCLUDE overall_footer.html -->
