@@ -1,53 +1,61 @@
 <?php
-/**
- *
- * Member Medals extension for the phpBB Forum Software package.
- *
- * @copyright (c) 2026
- * @license GNU General Public License, version 2 (GPL-2.0)
- *
- */
 
-namespace mundophpbb\membermedals;
+namespace mundophpbb\membermedalsattachments;
 
 class ext extends \phpbb\extension\base
 {
-    public function enable_step($old_state)
-    {
-        if ($old_state === false)
-        {
-            $phpbb_notifications = $this->container->get('notification_manager');
-            $phpbb_notifications->enable_notifications('mundophpbb.membermedals.notification.type.medal_awarded');
+	protected $required_extension_path = 'ext/mundophpbb/membermedals/';
+	protected $required_interface_file = 'contract/rule_provider_interface.php';
+	protected $required_interface_name = 'mundophpbb\\membermedals\\contract\\rule_provider_interface';
 
-            return 'notifications';
-        }
+	/**
+	 * Ajuste aqui para a versão mínima real do pacote principal.
+	 * Exemplo: 1.0.1, 1.1.0, 2.0.0...
+	 */
+	protected $minimum_membermedals_version = '1.0.0';
 
-        return parent::enable_step($old_state);
-    }
+	public function is_enableable()
+	{
+		$root_path = $this->container->getParameter('core.root_path');
+		$main_ext_path = $root_path . $this->required_extension_path;
+		$interface_path = $main_ext_path . $this->required_interface_file;
 
-    public function disable_step($old_state)
-    {
-        if ($old_state === false)
-        {
-            $phpbb_notifications = $this->container->get('notification_manager');
-            $phpbb_notifications->disable_notifications('mundophpbb.membermedals.notification.type.medal_awarded');
+		// 1) A extensão principal precisa existir
+		if (!is_dir($main_ext_path))
+		{
+			return false;
+		}
 
-            return 'notifications';
-        }
+		// 2) O arquivo da interface precisa existir
+		if (!is_file($interface_path))
+		{
+			return false;
+		}
 
-        return parent::disable_step($old_state);
-    }
+		// 3) Tenta validar a interface exigida
+		require_once $interface_path;
 
-    public function purge_step($old_state)
-    {
-        if ($old_state === false)
-        {
-            $phpbb_notifications = $this->container->get('notification_manager');
-            $phpbb_notifications->purge_notifications('mundophpbb.membermedals.notification.type.medal_awarded');
+		if (!interface_exists($this->required_interface_name))
+		{
+			return false;
+		}
 
-            return 'notifications';
-        }
+		// 4) Se houver version no composer.json da principal, valida a versão mínima
+		$composer_path = $main_ext_path . 'composer.json';
 
-        return parent::purge_step($old_state);
-    }
+		if (is_file($composer_path))
+		{
+			$composer_data = json_decode(file_get_contents($composer_path), true);
+
+			if (is_array($composer_data) && !empty($composer_data['version']))
+			{
+				if (version_compare($composer_data['version'], $this->minimum_membermedals_version, '<'))
+				{
+					return false;
+				}
+			}
+		}
+
+		return parent::is_enableable();
+	}
 }
