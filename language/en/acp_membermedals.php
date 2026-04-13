@@ -105,7 +105,7 @@ $lang = array_merge($lang, [
     'ACP_MEMBERMEDALS_RULE_TYPE_MEMBERSHIP_DAYS' => 'Registration time (days)',
     'ACP_MEMBERMEDALS_RULE_OPERATOR'         => 'Operator',
     'ACP_MEMBERMEDALS_RULE_VALUE'            => 'Value',
-    'ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN'    => 'Posts, topics, and registration time use numerical values. For avatar and signature, normally use &gt;= 1 to grant when the field is filled.',
+    'ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN'    => 'Posts, topics, and registration time use numerical values. For avatar and signature, normally use &gt;= 1 to grant when the field is filled. For post-count rules, the highest tier automatically replaces the previous one.',
     'ACP_MEMBERMEDALS_RULE_ENABLED'          => 'Rule active',
     'ACP_MEMBERMEDALS_RULE_NOTIFY'           => 'Notify when granted',
     'ACP_MEMBERMEDALS_RULE_SAVED'            => 'Rule saved successfully. Initial sync: %1$s medal(s) granted.',

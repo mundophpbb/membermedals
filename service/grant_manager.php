@@ -154,21 +154,30 @@ class grant_manager
             ];
         }
 
-        $sql = 'DELETE FROM ' . $this->awards_table . '
-            WHERE user_id = ' . (int) $user_row['user_id'] . '
-                AND medal_id = ' . (int) $medal_id;
-        $this->db->sql_query($sql);
-
-        $sql = 'DELETE FROM ' . $this->featured_table . '
-            WHERE user_id = ' . (int) $user_row['user_id'] . '
-                AND medal_id = ' . (int) $medal_id;
-        $this->db->sql_query($sql);
+        $this->remove_medal_from_user((int) $user_row['user_id'], $medal_id);
 
         return [
             'success'    => true,
             'message'    => 'ACP_MEMBERMEDALS_AWARD_REMOVED',
             'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
         ];
+    }
+
+    public function remove_medal_from_user(int $user_id, int $medal_id): void
+    {
+        if ($user_id <= ANONYMOUS || $medal_id <= 0) {
+            return;
+        }
+
+        $sql = 'DELETE FROM ' . $this->awards_table . '
+            WHERE user_id = ' . (int) $user_id . '
+                AND medal_id = ' . (int) $medal_id;
+        $this->db->sql_query($sql);
+
+        $sql = 'DELETE FROM ' . $this->featured_table . '
+            WHERE user_id = ' . (int) $user_id . '
+                AND medal_id = ' . (int) $medal_id;
+        $this->db->sql_query($sql);
     }
 
     protected function get_user_by_username(string $username): array

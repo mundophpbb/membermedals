@@ -501,7 +501,7 @@
 
             <dl>
                 <dt><label for="rule_value">{L_ACP_MEMBERMEDALS_RULE_VALUE}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN}</span></dt>
-                <dd><input type="number" min="0" id="rule_value" name="rule_value" value="{EDIT_RULE_VALUE}" /></dd>
+                <dd><input type="number" min="0" max="999999999" step="1" id="rule_value" name="rule_value" value="{EDIT_RULE_VALUE}" /></dd>
             </dl>
 
             <dl>
@@ -742,6 +742,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var rulePreviewFallback = document.getElementById('membermedals-rule-preview-fallback');
     var rulePreviewName = document.getElementById('membermedals-rule-preview-name');
 
+    var ruleType = document.getElementById('rule_type');
+    var ruleValue = document.getElementById('rule_value');
+
     bindPreviewImage(rulePreviewImg, rulePreviewFallback);
 
     function updateRulePreview() {
@@ -770,6 +773,32 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ruleSelect) {
         ruleSelect.addEventListener('change', updateRulePreview);
         updateRulePreview();
+    }
+
+    function updateRuleValueConstraints() {
+        if (!ruleType || !ruleValue) {
+            return;
+        }
+
+        if (ruleType.value === 'avatar' || ruleType.value === 'signature') {
+            ruleValue.min = '0';
+            ruleValue.max = '1';
+            if (ruleValue.value === '' || parseInt(ruleValue.value, 10) > 1) {
+                ruleValue.value = '1';
+            }
+            return;
+        }
+
+        ruleValue.min = '0';
+        ruleValue.max = '999999999';
+        if (ruleValue.value !== '' && parseInt(ruleValue.value, 10) < 0) {
+            ruleValue.value = '0';
+        }
+    }
+
+    if (ruleType) {
+        ruleType.addEventListener('change', updateRuleValueConstraints);
+        updateRuleValueConstraints();
     }
 
     updateMedalPreview();

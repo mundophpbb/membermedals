@@ -105,7 +105,7 @@ $lang = array_merge($lang, [
     'ACP_MEMBERMEDALS_RULE_TYPE_MEMBERSHIP_DAYS' => 'Tempo de registro (dias)',
     'ACP_MEMBERMEDALS_RULE_OPERATOR'         => 'Operador',
     'ACP_MEMBERMEDALS_RULE_VALUE'            => 'Valor',
-    'ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN'    => 'Posts, tópicos e tempo de registro usam valor numérico. Para avatar e assinatura, use normalmente &gt;= 1 para conceder quando o campo estiver preenchido.',
+    'ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN'    => 'Posts, tópicos e tempo de registro usam valor numérico. Para avatar e assinatura, use normalmente &gt;= 1 para conceder quando o campo estiver preenchido. Nas regras por posts, a medalha de maior faixa substitui automaticamente a anterior.',
     'ACP_MEMBERMEDALS_RULE_ENABLED'          => 'Regra ativa',
     'ACP_MEMBERMEDALS_RULE_NOTIFY'           => 'Notificar quando conceder',
     'ACP_MEMBERMEDALS_RULE_SAVED'            => 'Regra salva com sucesso. Sincronização inicial: %1$s medalha(s) concedida(s).',

@@ -97,11 +97,13 @@ class rules_manager
 
     public function save_rule(array $data): int
     {
+        $normalized_value = $this->normalize_rule_value((string) ($data['rule_type'] ?? ''), $data['rule_value'] ?? 0);
+
         $sql_ary = [
             'medal_id'      => (int) $data['medal_id'],
             'rule_type'     => (string) $data['rule_type'],
             'rule_operator' => (string) $data['rule_operator'],
-            'rule_value'    => (string) $data['rule_value'],
+            'rule_value'    => (string) $normalized_value,
             'rule_enabled'  => (int) $data['rule_enabled'],
             'rule_notify'   => (int) $data['rule_notify'],
             'rule_options'  => '',
@@ -155,6 +157,10 @@ class rules_manager
 
         $awarded = 0;
         foreach ($this->get_enabled_rules() as $rule) {
+            if ((string) ($rule['rule_type'] ?? '') === 'posts') {
+                continue;
+            }
+
             if (!$this->rule_matches_user($rule, $user_row)) {
                 continue;
             }
@@ -174,6 +180,8 @@ class rules_manager
             }
         }
 
+        $awarded += $this->sync_progressive_rule_type_for_user($user_id, 'posts', $user_row);
+
         return $awarded;
     }
 
@@ -189,8 +197,13 @@ class rules_manager
             return 0;
         }
 
-        $sql = 'SELECT u.user_id, u.user_posts, u.user_avatar, u.user_sig, u.user_regdate, COALESCE(t.topic_count, 0) AS user_topics
+        $is_progressive_posts_rule = ((string) ($rule['rule_type'] ?? '') === 'posts');
+
+        $sql = 'SELECT u.user_id, u.user_posts, u.user_avatar, u.user_avatar_type, u.user_sig, u.user_regdate,
+                g.group_avatar AS default_group_avatar, g.group_avatar_type AS default_group_avatar_type,
+                COALESCE(t.topic_count, 0) AS user_topics
             FROM ' . USERS_TABLE . ' u
+            LEFT JOIN ' . GROUPS_TABLE . ' g ON g.group_id = u.group_id
             LEFT JOIN ' . BOTS_TABLE . ' b ON b.user_id = u.user_id
             LEFT JOIN (
                 SELECT topic_poster, COUNT(topic_id) AS topic_count
@@ -204,6 +217,11 @@ class rules_manager
         $result = $this->db->sql_query($sql);
         $awarded = 0;
         while ($row = $this->db->sql_fetchrow($result)) {
+            if ($is_progressive_posts_rule) {
+                $awarded += $this->sync_progressive_rule_type_for_user((int) $row['user_id'], 'posts', $row);
+                continue;
+            }
+
             if (!$this->rule_matches_user($rule, $row)) {
                 continue;
             }
@@ -324,8 +342,11 @@ class rules_manager
 
     protected function get_user_rule_context(int $user_id): array
     {
-        $sql = 'SELECT u.user_id, u.user_posts, u.user_avatar, u.user_sig, u.user_regdate, COALESCE(t.topic_count, 0) AS user_topics
+        $sql = 'SELECT u.user_id, u.user_posts, u.user_avatar, u.user_avatar_type, u.user_sig, u.user_regdate,
+                g.group_avatar AS default_group_avatar, g.group_avatar_type AS default_group_avatar_type,
+                COALESCE(t.topic_count, 0) AS user_topics
             FROM ' . USERS_TABLE . ' u
+            LEFT JOIN ' . GROUPS_TABLE . ' g ON g.group_id = u.group_id
             LEFT JOIN ' . BOTS_TABLE . ' b ON b.user_id = u.user_id
             LEFT JOIN (
                 SELECT topic_poster, COUNT(topic_id) AS topic_count
@@ -352,7 +373,7 @@ class rules_manager
         $value = match ($rule_type) {
             'posts' => (int) ($user_row['user_posts'] ?? 0),
             'topics' => (int) ($user_row['user_topics'] ?? 0),
-            'avatar' => !empty($user_row['user_avatar']) ? 1 : 0,
+            'avatar' => $this->user_has_custom_avatar($user_row) ? 1 : 0,
             'signature' => !empty(trim((string) ($user_row['user_sig'] ?? ''))) ? 1 : 0,
             'membership_days' => $this->get_membership_days((int) ($user_row['user_regdate'] ?? 0)),
             default => null,
@@ -369,6 +390,136 @@ class rules_manager
             '<=' => $value <= $rule_value,
             default => $value >= $rule_value,
         };
+    }
+
+    protected function normalize_rule_value(string $rule_type, $rule_value): int
+    {
+        $value = max(0, (int) $rule_value);
+
+        return match ($rule_type) {
+            'avatar', 'signature' => min(1, $value),
+            default => min(999999999, $value),
+        };
+    }
+
+    protected function sync_progressive_rule_type_for_user(int $user_id, string $rule_type, ?array $user_row = null): int
+    {
+        if ($user_id <= ANONYMOUS || $rule_type !== 'posts') {
+            return 0;
+        }
+
+        $user_row = $user_row ?: $this->get_user_rule_context($user_id);
+        if (!$user_row) {
+            return 0;
+        }
+
+        $rules = $this->get_enabled_rules_by_type($rule_type);
+        $matched_rules = [];
+        foreach ($rules as $rule) {
+            if ($this->rule_matches_user($rule, $user_row)) {
+                $matched_rules[] = $rule;
+            }
+        }
+
+        $winner = null;
+        if (!empty($matched_rules)) {
+            usort($matched_rules, static function (array $a, array $b): int {
+                $value_cmp = ((int) ($a['rule_value'] ?? 0)) <=> ((int) ($b['rule_value'] ?? 0));
+                if ($value_cmp !== 0) {
+                    return $value_cmp;
+                }
+
+                return ((int) ($a['rule_id'] ?? 0)) <=> ((int) ($b['rule_id'] ?? 0));
+            });
+
+            $winner = end($matched_rules) ?: null;
+        }
+
+        $created = 0;
+        if ($winner) {
+            $grant = $this->grant_manager->grant_medal_to_user(
+                $user_id,
+                (int) $winner['medal_id'],
+                (int) $winner['rule_id'],
+                'auto',
+                '',
+                0,
+                !empty($winner['rule_notify'])
+            );
+
+            if (!empty($grant['success']) && !empty($grant['created'])) {
+                $created++;
+            }
+        }
+
+        $keep_rule_id = $winner ? (int) $winner['rule_id'] : 0;
+        foreach ($this->get_auto_awards_for_rule_type($user_id, $rule_type) as $award) {
+            $award_rule_id = (int) ($award['rule_id'] ?? 0);
+            if ($keep_rule_id > 0 && $award_rule_id === $keep_rule_id) {
+                continue;
+            }
+
+            $this->grant_manager->remove_medal_from_user(
+                $user_id,
+                (int) ($award['medal_id'] ?? 0)
+            );
+        }
+
+        return $created;
+    }
+
+    protected function get_enabled_rules_by_type(string $rule_type): array
+    {
+        $sql = 'SELECT *
+            FROM ' . $this->rules_table . "
+            WHERE rule_enabled = 1
+                AND rule_type = '" . $this->db->sql_escape($rule_type) . "'
+            ORDER BY rule_value + 0 ASC, rule_id ASC";
+        $result = $this->db->sql_query($sql);
+        $rows = [];
+        while ($row = $this->db->sql_fetchrow($result)) {
+            $rows[] = $row;
+        }
+        $this->db->sql_freeresult($result);
+
+        return $rows;
+    }
+
+    protected function get_auto_awards_for_rule_type(int $user_id, string $rule_type): array
+    {
+        $sql = 'SELECT a.award_id, a.medal_id, a.rule_id
+            FROM ' . $this->awards_table . ' a
+            INNER JOIN ' . $this->rules_table . ' r ON r.rule_id = a.rule_id
+            WHERE a.user_id = ' . (int) $user_id . "
+                AND a.award_source = 'auto'
+                AND r.rule_type = '" . $this->db->sql_escape($rule_type) . "'";
+        $result = $this->db->sql_query($sql);
+        $rows = [];
+        while ($row = $this->db->sql_fetchrow($result)) {
+            $rows[] = $row;
+        }
+        $this->db->sql_freeresult($result);
+
+        return $rows;
+    }
+
+    protected function user_has_custom_avatar(array $user_row): bool
+    {
+        $user_avatar = trim((string) ($user_row['user_avatar'] ?? ''));
+        $user_avatar_type = trim((string) ($user_row['user_avatar_type'] ?? ''));
+        if ($user_avatar === '' || $user_avatar_type === '') {
+            return false;
+        }
+
+        $group_avatar = trim((string) ($user_row['default_group_avatar'] ?? ''));
+        $group_avatar_type = trim((string) ($user_row['default_group_avatar_type'] ?? ''));
+        if ($group_avatar !== '' && $group_avatar_type !== ''
+            && $user_avatar === $group_avatar
+            && $user_avatar_type === $group_avatar_type) {
+            return false;
+        }
+
+        return true;
     }
 
     protected function get_membership_days(int $user_regdate): int
