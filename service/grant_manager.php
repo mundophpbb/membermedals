@@ -31,6 +31,9 @@ class grant_manager
     /** @var string */
     protected $featured_table;
 
+    /** @var bool|null */
+    protected $supports_award_family = null;
+
     public function __construct(
         driver_interface $db,
         config $config,
@@ -67,7 +70,8 @@ class grant_manager
         string $source = 'manual',
         string $reason = '',
         int $actor_id = 0,
-        bool $notify = true
+        bool $notify = true,
+        string $award_family = ''
     ): array {
         $user_row = $this->get_user_by_id($user_id);
         if (!$user_row) {
@@ -103,6 +107,10 @@ class grant_manager
             'award_reason'       => $reason,
             'awarded_at'         => time(),
         ];
+
+        if ($this->has_award_family_column()) {
+            $sql_ary['award_family'] = $award_family;
+        }
 
         $sql = 'INSERT INTO ' . $this->awards_table . ' ' . $this->db->sql_build_array('INSERT', $sql_ary);
         $this->db->sql_query($sql);
@@ -203,7 +211,7 @@ class grant_manager
             LEFT JOIN ' . BOTS_TABLE . ' b ON b.user_id = u.user_id
             WHERE u.user_id = ' . (int) $user_id . '
                 AND b.user_id IS NULL';
-        $result = $this->db->sql_query_limit($sql, 1);
+        $result = $this->db->sql_query($sql);
         $row = (array) $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 
@@ -222,13 +230,84 @@ class grant_manager
         return $row;
     }
 
+
+    protected function has_award_family_column(): bool
+    {
+        if ($this->supports_award_family !== null) {
+            return $this->supports_award_family;
+        }
+
+        $sql_layer = method_exists($this->db, 'get_sql_layer') ? (string) $this->db->get_sql_layer() : 'mysqli';
+        $table_name = $this->awards_table;
+        $exists = false;
+
+        switch ($sql_layer) {
+            case 'mysqli':
+            case 'mysql4':
+            case 'mysql':
+                $sql = "SHOW COLUMNS FROM " . $table_name . " LIKE 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'postgres':
+            case 'postgresql':
+                $sql = "SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '" . $this->db->sql_escape($table_name) . "'
+                        AND column_name = 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'sqlite':
+            case 'sqlite3':
+                $sql = 'PRAGMA table_info(' . $table_name . ')';
+                $result = $this->db->sql_query($sql);
+                while ($row = $this->db->sql_fetchrow($result)) {
+                    if ((string) ($row['name'] ?? '') === 'award_family') {
+                        $exists = true;
+                        break;
+                    }
+                }
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'oracle':
+                $sql = "SELECT column_name
+                    FROM user_tab_cols
+                    WHERE table_name = '" . strtoupper($this->db->sql_escape($table_name)) . "'
+                        AND column_name = 'AWARD_FAMILY'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            default:
+                $sql = "SELECT column_name
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = '" . $this->db->sql_escape($table_name) . "'
+                        AND COLUMN_NAME = 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+        }
+
+        $this->supports_award_family = $exists;
+
+        return $this->supports_award_family;
+    }
+
     protected function user_has_medal(int $user_id, int $medal_id): bool
     {
         $sql = 'SELECT award_id
             FROM ' . $this->awards_table . '
             WHERE user_id = ' . (int) $user_id . '
                 AND medal_id = ' . (int) $medal_id;
-        $result = $this->db->sql_query_limit($sql, 1);
+        $result = $this->db->sql_query($sql);
         $row = $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 

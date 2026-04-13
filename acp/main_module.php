@@ -37,13 +37,8 @@ class main_module
 
         add_form_key('acp_membermedals');
 
-        $rule_type_map = [
-            'posts'           => 'ACP_MEMBERMEDALS_RULE_TYPE_POSTS',
-            'topics'          => 'ACP_MEMBERMEDALS_RULE_TYPE_TOPICS',
-            'avatar'          => 'ACP_MEMBERMEDALS_RULE_TYPE_AVATAR',
-            'signature'       => 'ACP_MEMBERMEDALS_RULE_TYPE_SIGNATURE',
-            'membership_days' => 'ACP_MEMBERMEDALS_RULE_TYPE_MEMBERSHIP_DAYS',
-        ];
+        $rule_type_options = $rules_manager->get_rule_type_options();
+        $default_rule_type = $rules_manager->get_default_rule_type();
 
         switch ($mode) {
             case 'settings':
@@ -337,7 +332,7 @@ class main_module
                     $data = [
                         'rule_id'       => $request->variable('rule_id', 0),
                         'medal_id'      => $request->variable('medal_id', 0),
-                        'rule_type'     => $request->variable('rule_type', 'posts'),
+                        'rule_type'     => $request->variable('rule_type', $default_rule_type),
                         'rule_operator' => $request->variable('rule_operator', '>='),
                         'rule_value'    => $request->variable('rule_value', ''),
                         'rule_enabled'  => $request->variable('rule_enabled', 1),
@@ -362,7 +357,7 @@ class main_module
                 $rule_defaults = [
                     'rule_id'       => 0,
                     'medal_id'      => 0,
-                    'rule_type'     => 'posts',
+                    'rule_type'     => $default_rule_type,
                     'rule_operator' => '>=',
                     'rule_value'    => '',
                     'rule_enabled'  => 1,
@@ -402,11 +397,24 @@ class main_module
                     }
                 }
 
-                foreach ($rule_type_map as $type_key => $type_lang) {
+                foreach ($rule_type_options as $type_option) {
                     $template->assign_block_vars('rule_types', [
-                        'RULE_TYPE_KEY'  => $type_key,
-                        'RULE_TYPE_LANG' => $user->lang($type_lang),
-                        'S_SELECTED'     => $type_key === (string) $edit_rule['rule_type'],
+                        'RULE_TYPE_KEY'   => (string) $type_option['key'],
+                        'RULE_TYPE_LANG'  => $user->lang((string) $type_option['label_lang_key']),
+                        'RULE_OPERATORS'  => implode('|', (array) ($type_option['operators'] ?? [])),
+                        'RULE_VALUE_MIN'  => (int) ($type_option['value_min'] ?? 0),
+                        'RULE_VALUE_MAX'  => (int) ($type_option['value_max'] ?? 999999999),
+                        'RULE_VALUE_STEP' => (int) ($type_option['value_step'] ?? 1),
+                        'RULE_PROGRESSIVE' => !empty($type_option['is_progressive']) ? 1 : 0,
+                        'S_SELECTED'      => (string) $type_option['key'] === (string) $edit_rule['rule_type'],
+                    ]);
+                }
+
+                foreach ($rules_manager->get_supported_operators((string) ($edit_rule['rule_type'] ?? $default_rule_type)) as $operator) {
+                    $template->assign_block_vars('rule_operators', [
+                        'OPERATOR_VALUE' => $operator,
+                        'OPERATOR_LABEL' => $operator,
+                        'S_SELECTED'     => $operator === (string) ($edit_rule['rule_operator'] ?? '>='),
                     ]);
                 }
 
@@ -418,12 +426,12 @@ class main_module
                 $rule_stats = $rules_manager->get_rule_stats();
 
                 foreach ($rules as $rule) {
-                    $type_key = (string) ($rule['rule_type'] ?? 'posts');
+                    $type_key = (string) ($rule['rule_type'] ?? $default_rule_type);
                     $template->assign_block_vars('rules', [
                         'RULE_ID'        => (int) ($rule['rule_id'] ?? 0),
                         'MEDAL_NAME'     => $rule['medal_name'] ?? '',
                         'RULE_TYPE'      => $type_key,
-                        'RULE_TYPE_LANG' => $user->lang($rule_type_map[$type_key] ?? 'ACP_MEMBERMEDALS_RULE_TYPE'),
+                        'RULE_TYPE_LANG' => $user->lang($rules_manager->get_rule_type_label_lang_key($type_key)),
                         'RULE_OPERATOR'  => (string) ($rule['rule_operator'] ?? '>='),
                         'RULE_VALUE'     => (string) ($rule['rule_value'] ?? ''),
                         'RULE_ENABLED'   => (int) ($rule['rule_enabled'] ?? 1),
@@ -441,11 +449,14 @@ class main_module
                     'S_EDIT_RULE'                => $action === 'edit',
                     'S_HAS_RULE_MEDALS'          => !empty($rule_medals),
                     'EDIT_RULE_ID'               => (int) ($edit_rule['rule_id'] ?? 0),
-                    'EDIT_RULE_TYPE'             => (string) ($edit_rule['rule_type'] ?? 'posts'),
+                    'EDIT_RULE_TYPE'             => (string) ($edit_rule['rule_type'] ?? $default_rule_type),
                     'EDIT_RULE_OPERATOR'         => (string) ($edit_rule['rule_operator'] ?? '>='),
                     'EDIT_RULE_VALUE'            => (string) ($edit_rule['rule_value'] ?? ''),
                     'EDIT_RULE_ENABLED'          => (int) ($edit_rule['rule_enabled'] ?? 1),
                     'EDIT_RULE_NOTIFY'           => (int) ($edit_rule['rule_notify'] ?? 1),
+                    'EDIT_RULE_VALUE_MIN'        => (int) (($rules_manager->get_rule_type_input_attributes((string) ($edit_rule['rule_type'] ?? $default_rule_type)))['min'] ?? 0),
+                    'EDIT_RULE_VALUE_MAX'        => (int) (($rules_manager->get_rule_type_input_attributes((string) ($edit_rule['rule_type'] ?? $default_rule_type)))['max'] ?? 999999999),
+                    'EDIT_RULE_VALUE_STEP'       => (int) (($rules_manager->get_rule_type_input_attributes((string) ($edit_rule['rule_type'] ?? $default_rule_type)))['step'] ?? 1),
                     'RULE_PREVIEW_MEDAL_NAME'    => (string) ($selected_rule_medal['medal_name'] ?? ''),
                     'RULE_PREVIEW_MEDAL_DESC'    => (string) ($selected_rule_medal['medal_description'] ?? ''),
                     'RULE_PREVIEW_MEDAL_IMAGE'   => (string) ($selected_rule_medal['medal_image_url'] ?? ''),

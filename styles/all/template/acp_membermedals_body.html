@@ -480,7 +480,7 @@
                 <dd>
                     <select id="rule_type" name="rule_type">
                         <!-- BEGIN rule_types -->
-                            <option value="{rule_types.RULE_TYPE_KEY}"<!-- IF rule_types.S_SELECTED --> selected="selected"<!-- ENDIF -->>{rule_types.RULE_TYPE_LANG}</option>
+                            <option value="{rule_types.RULE_TYPE_KEY}" data-operators="{rule_types.RULE_OPERATORS}" data-min="{rule_types.RULE_VALUE_MIN}" data-max="{rule_types.RULE_VALUE_MAX}" data-step="{rule_types.RULE_VALUE_STEP}" data-progressive="{rule_types.RULE_PROGRESSIVE}"<!-- IF rule_types.S_SELECTED --> selected="selected"<!-- ENDIF -->>{rule_types.RULE_TYPE_LANG}</option>
                         <!-- END rule_types -->
                     </select>
                 </dd>
@@ -490,18 +490,16 @@
                 <dt><label for="rule_operator">{L_ACP_MEMBERMEDALS_RULE_OPERATOR}{L_COLON}</label></dt>
                 <dd>
                     <select id="rule_operator" name="rule_operator">
-                        <option value=">="<!-- IF EDIT_RULE_OPERATOR == '>=' --> selected="selected"<!-- ENDIF -->>&gt;=</option>
-                        <option value=">"<!-- IF EDIT_RULE_OPERATOR == '>' --> selected="selected"<!-- ENDIF -->>&gt;</option>
-                        <option value="="<!-- IF EDIT_RULE_OPERATOR == '=' --> selected="selected"<!-- ENDIF -->>=</option>
-                        <option value="<="<!-- IF EDIT_RULE_OPERATOR == '<=' --> selected="selected"<!-- ENDIF -->>&lt;=</option>
-                        <option value="<"<!-- IF EDIT_RULE_OPERATOR == '<' --> selected="selected"<!-- ENDIF -->>&lt;</option>
+                        <!-- BEGIN rule_operators -->
+                            <option value="{rule_operators.OPERATOR_VALUE}"<!-- IF rule_operators.S_SELECTED --> selected="selected"<!-- ENDIF -->>{rule_operators.OPERATOR_LABEL}</option>
+                        <!-- END rule_operators -->
                     </select>
                 </dd>
             </dl>
 
             <dl>
                 <dt><label for="rule_value">{L_ACP_MEMBERMEDALS_RULE_VALUE}{L_COLON}</label><br><span>{L_ACP_MEMBERMEDALS_RULE_VALUE_EXPLAIN}</span></dt>
-                <dd><input type="number" min="0" max="999999999" step="1" id="rule_value" name="rule_value" value="{EDIT_RULE_VALUE}" /></dd>
+                <dd><input type="number" min="{EDIT_RULE_VALUE_MIN}" max="{EDIT_RULE_VALUE_MAX}" step="{EDIT_RULE_VALUE_STEP}" id="rule_value" name="rule_value" value="{EDIT_RULE_VALUE}" /></dd>
             </dl>
 
             <dl>
@@ -743,6 +741,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var rulePreviewName = document.getElementById('membermedals-rule-preview-name');
 
     var ruleType = document.getElementById('rule_type');
+    var ruleOperator = document.getElementById('rule_operator');
     var ruleValue = document.getElementById('rule_value');
 
     bindPreviewImage(rulePreviewImg, rulePreviewFallback);
@@ -775,30 +774,64 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRulePreview();
     }
 
-    function updateRuleValueConstraints() {
+    function updateRuleTypeUI() {
         if (!ruleType || !ruleValue) {
             return;
         }
 
-        if (ruleType.value === 'avatar' || ruleType.value === 'signature') {
-            ruleValue.min = '0';
-            ruleValue.max = '1';
-            if (ruleValue.value === '' || parseInt(ruleValue.value, 10) > 1) {
-                ruleValue.value = '1';
+        var option = ruleType.options[ruleType.selectedIndex];
+        if (!option) {
+            return;
+        }
+
+        var operators = (option.getAttribute('data-operators') || '>=|>|=|<=|<').split('|');
+        var selectedOperator = ruleOperator ? ruleOperator.value : '>=';
+
+        if (ruleOperator) {
+            ruleOperator.innerHTML = '';
+            operators.forEach(function (operator) {
+                if (!operator) {
+                    return;
+                }
+                var operatorOption = document.createElement('option');
+                operatorOption.value = operator;
+                operatorOption.textContent = operator;
+                if (operator === selectedOperator || (!selectedOperator && operators[0] === operator)) {
+                    operatorOption.selected = true;
+                }
+                ruleOperator.appendChild(operatorOption);
+            });
+            if (ruleOperator.options.length && ruleOperator.selectedIndex === -1) {
+                ruleOperator.selectedIndex = 0;
+            }
+        }
+
+        var min = parseInt(option.getAttribute('data-min') || '0', 10);
+        var max = parseInt(option.getAttribute('data-max') || '999999999', 10);
+        var step = parseInt(option.getAttribute('data-step') || '1', 10);
+
+        ruleValue.min = String(min);
+        ruleValue.max = String(max);
+        ruleValue.step = String(step);
+
+        if (ruleValue.value === '') {
+            if (max <= 1) {
+                ruleValue.value = String(max);
             }
             return;
         }
 
-        ruleValue.min = '0';
-        ruleValue.max = '999999999';
-        if (ruleValue.value !== '' && parseInt(ruleValue.value, 10) < 0) {
-            ruleValue.value = '0';
+        var currentValue = parseInt(ruleValue.value, 10);
+        if (isNaN(currentValue) || currentValue < min) {
+            ruleValue.value = String(min);
+        } else if (currentValue > max) {
+            ruleValue.value = String(max);
         }
     }
 
     if (ruleType) {
-        ruleType.addEventListener('change', updateRuleValueConstraints);
-        updateRuleValueConstraints();
+        ruleType.addEventListener('change', updateRuleTypeUI);
+        updateRuleTypeUI();
     }
 
     updateMedalPreview();

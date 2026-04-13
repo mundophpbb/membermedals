@@ -1,6 +1,8 @@
 <?php
+
 namespace mundophpbb\membermedals\service;
 
+use mundophpbb\membermedals\contract\rule_provider_interface;
 use phpbb\db\driver\driver_interface;
 
 class rules_manager
@@ -10,19 +12,23 @@ class rules_manager
     protected string $rules_table;
     protected string $awards_table;
     protected grant_manager $grant_manager;
+    protected rule_provider_registry $provider_registry;
+    protected ?bool $supports_award_family = null;
 
     public function __construct(
         driver_interface $db,
         string $medals_table,
         string $rules_table,
         string $awards_table,
-        grant_manager $grant_manager
+        grant_manager $grant_manager,
+        rule_provider_registry $provider_registry
     ) {
         $this->db = $db;
         $this->medals_table = $medals_table;
         $this->rules_table = $rules_table;
         $this->awards_table = $awards_table;
         $this->grant_manager = $grant_manager;
+        $this->provider_registry = $provider_registry;
     }
 
     public function get_all_rules(): array
@@ -71,7 +77,7 @@ class rules_manager
                 SUM(CASE WHEN rule_enabled = 0 THEN 1 ELSE 0 END) AS disabled,
                 SUM(CASE WHEN rule_type = 'topics' THEN 1 ELSE 0 END) AS topics
             FROM " . $this->rules_table;
-        $result = $this->db->sql_query_limit($sql, 1);
+        $result = $this->db->sql_query($sql);
         $row = (array) $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 
@@ -88,7 +94,7 @@ class rules_manager
         $sql = 'SELECT *
             FROM ' . $this->rules_table . '
             WHERE rule_id = ' . (int) $rule_id;
-        $result = $this->db->sql_query_limit($sql, 1);
+        $result = $this->db->sql_query($sql);
         $row = (array) $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 
@@ -97,24 +103,38 @@ class rules_manager
 
     public function save_rule(array $data): int
     {
-        $normalized_value = $this->normalize_rule_value((string) ($data['rule_type'] ?? ''), $data['rule_value'] ?? 0);
+        $rule_type = $this->resolve_valid_rule_type((string) ($data['rule_type'] ?? ''));
+        $provider = $this->provider_registry->get($rule_type);
+        $normalized = $provider ? $provider->normalize_rule_data($data) : $data;
+
+        $rule_operator = (string) ($normalized['rule_operator'] ?? '>=');
+        if ($provider && !in_array($rule_operator, $provider->get_supported_operators(), true)) {
+            $rule_operator = (string) ($provider->get_supported_operators()[0] ?? '>=');
+        }
+
+        $rule_options = $normalized['rule_options'] ?? [];
+        if (!is_string($rule_options)) {
+            $encoded = json_encode($rule_options, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $rule_options = $encoded !== false ? $encoded : '';
+        }
 
         $sql_ary = [
-            'medal_id'      => (int) $data['medal_id'],
-            'rule_type'     => (string) $data['rule_type'],
-            'rule_operator' => (string) $data['rule_operator'],
-            'rule_value'    => (string) $normalized_value,
-            'rule_enabled'  => (int) $data['rule_enabled'],
-            'rule_notify'   => (int) $data['rule_notify'],
-            'rule_options'  => '',
+            'medal_id'      => (int) ($normalized['medal_id'] ?? 0),
+            'rule_type'     => $rule_type,
+            'rule_operator' => $rule_operator,
+            'rule_value'    => (string) ($normalized['rule_value'] ?? 0),
+            'rule_enabled'  => (int) ($normalized['rule_enabled'] ?? 1),
+            'rule_notify'   => (int) ($normalized['rule_notify'] ?? 1),
+            'rule_options'  => (string) $rule_options,
         ];
 
-        if (!empty($data['rule_id'])) {
+        if (!empty($normalized['rule_id'])) {
             $sql = 'UPDATE ' . $this->rules_table . '
                 SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
-                WHERE rule_id = ' . (int) $data['rule_id'];
+                WHERE rule_id = ' . (int) $normalized['rule_id'];
             $this->db->sql_query($sql);
-            return (int) $data['rule_id'];
+
+            return (int) $normalized['rule_id'];
         }
 
         $sql_ary['rule_created_at'] = time();
@@ -156,12 +176,20 @@ class rules_manager
         }
 
         $awarded = 0;
+        $progressive_families = [];
+
         foreach ($this->get_enabled_rules() as $rule) {
-            if ((string) ($rule['rule_type'] ?? '') === 'posts') {
+            $provider = $this->get_provider_for_rule($rule);
+            if (!$provider) {
                 continue;
             }
 
-            if (!$this->rule_matches_user($rule, $user_row)) {
+            if ($provider->is_progressive()) {
+                $progressive_families[$provider->get_family()] = true;
+                continue;
+            }
+
+            if (!$this->rule_matches_user($rule, $user_row, $provider)) {
                 continue;
             }
 
@@ -172,7 +200,8 @@ class rules_manager
                 'auto',
                 '',
                 0,
-                !empty($rule['rule_notify'])
+                !empty($rule['rule_notify']),
+                $provider->get_family()
             );
 
             if (!empty($result['success']) && !empty($result['created'])) {
@@ -180,7 +209,9 @@ class rules_manager
             }
         }
 
-        $awarded += $this->sync_progressive_rule_type_for_user($user_id, 'posts', $user_row);
+        foreach (array_keys($progressive_families) as $family) {
+            $awarded += $this->sync_progressive_family_for_user($user_id, $family, $user_row);
+        }
 
         return $awarded;
     }
@@ -197,7 +228,10 @@ class rules_manager
             return 0;
         }
 
-        $is_progressive_posts_rule = ((string) ($rule['rule_type'] ?? '') === 'posts');
+        $provider = $this->get_provider_for_rule($rule);
+        if (!$provider) {
+            return 0;
+        }
 
         $sql = 'SELECT u.user_id, u.user_posts, u.user_avatar, u.user_avatar_type, u.user_sig, u.user_regdate,
                 g.group_avatar AS default_group_avatar, g.group_avatar_type AS default_group_avatar_type,
@@ -217,12 +251,12 @@ class rules_manager
         $result = $this->db->sql_query($sql);
         $awarded = 0;
         while ($row = $this->db->sql_fetchrow($result)) {
-            if ($is_progressive_posts_rule) {
-                $awarded += $this->sync_progressive_rule_type_for_user((int) $row['user_id'], 'posts', $row);
+            if ($provider->is_progressive()) {
+                $awarded += $this->sync_progressive_family_for_user((int) $row['user_id'], $provider->get_family(), $row);
                 continue;
             }
 
-            if (!$this->rule_matches_user($rule, $row)) {
+            if (!$this->rule_matches_user($rule, $row, $provider)) {
                 continue;
             }
 
@@ -233,7 +267,8 @@ class rules_manager
                 'auto',
                 '',
                 0,
-                !empty($rule['rule_notify'])
+                !empty($rule['rule_notify']),
+                $provider->get_family()
             );
             if (!empty($grant['success']) && !empty($grant['created'])) {
                 $awarded++;
@@ -248,7 +283,6 @@ class rules_manager
     {
         return $this->sync_rule($rule_id);
     }
-
 
     public function sync_all_rules(): array
     {
@@ -270,6 +304,57 @@ class rules_manager
         ];
     }
 
+    public function get_rule_type_options(): array
+    {
+        $types = [];
+        foreach ($this->provider_registry->all() as $provider) {
+            $attributes = $provider->get_value_input_attributes();
+            $types[] = [
+                'key' => $provider->get_key(),
+                'label_lang_key' => $provider->get_label_lang_key(),
+                'description_lang_key' => $provider->get_description_lang_key(),
+                'operators' => $provider->get_supported_operators(),
+                'family' => $provider->get_family(),
+                'is_progressive' => $provider->is_progressive(),
+                'value_min' => (int) ($attributes['min'] ?? 0),
+                'value_max' => (int) ($attributes['max'] ?? 999999999),
+                'value_step' => (int) ($attributes['step'] ?? 1),
+            ];
+        }
+
+        return $types;
+    }
+
+    public function get_default_rule_type(): string
+    {
+        return $this->provider_registry->get_default_key();
+    }
+
+    public function get_supported_operators(string $rule_type): array
+    {
+        $provider = $this->provider_registry->get($this->resolve_valid_rule_type($rule_type));
+
+        return $provider ? $provider->get_supported_operators() : ['>=', '>', '=', '<=', '<'];
+    }
+
+    public function get_rule_type_label_lang_key(string $rule_type): string
+    {
+        $provider = $this->provider_registry->get($rule_type);
+
+        return $provider ? $provider->get_label_lang_key() : 'ACP_MEMBERMEDALS_RULE_TYPE';
+    }
+
+    public function get_rule_type_input_attributes(string $rule_type): array
+    {
+        $provider = $this->provider_registry->get($this->resolve_valid_rule_type($rule_type));
+
+        return $provider ? $provider->get_value_input_attributes() : [
+            'min' => 0,
+            'max' => 999999999,
+            'step' => 1,
+        ];
+    }
+
     protected function get_filtered_rule_ids(array $filters = [], bool $enabled_only = false): array
     {
         if ($enabled_only && (($filters['enabled'] ?? 'all') === 'disabled')) {
@@ -282,8 +367,7 @@ class rules_manager
         }
 
         $sql = 'SELECT rule_id
-'
-            . ' FROM ' . $this->rules_table;
+            FROM ' . $this->rules_table;
 
         if ($where) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -357,28 +441,27 @@ class rules_manager
             ) t ON t.topic_poster = u.user_id
             WHERE u.user_id = ' . (int) $user_id . '
                 AND b.user_id IS NULL';
-        $result = $this->db->sql_query_limit($sql, 1);
+        $result = $this->db->sql_query($sql);
         $row = (array) $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 
         return $row;
     }
 
-    protected function rule_matches_user(array $rule, array $user_row): bool
+    protected function rule_matches_user(array $rule, array $user_row, ?rule_provider_interface $provider = null): bool
     {
-        $rule_type = (string) ($rule['rule_type'] ?? '');
-        $rule_value = (int) ($rule['rule_value'] ?? 0);
+        $provider = $provider ?: $this->get_provider_for_rule($rule);
+        if (!$provider) {
+            return false;
+        }
+
         $rule_operator = (string) ($rule['rule_operator'] ?? '>=');
+        if (!in_array($rule_operator, $provider->get_supported_operators(), true)) {
+            $rule_operator = (string) ($provider->get_supported_operators()[0] ?? '>=');
+        }
 
-        $value = match ($rule_type) {
-            'posts' => (int) ($user_row['user_posts'] ?? 0),
-            'topics' => (int) ($user_row['user_topics'] ?? 0),
-            'avatar' => $this->user_has_custom_avatar($user_row) ? 1 : 0,
-            'signature' => !empty(trim((string) ($user_row['user_sig'] ?? ''))) ? 1 : 0,
-            'membership_days' => $this->get_membership_days((int) ($user_row['user_regdate'] ?? 0)),
-            default => null,
-        };
-
+        $rule_value = (int) ($rule['rule_value'] ?? 0);
+        $value = $provider->get_user_value((int) ($user_row['user_id'] ?? 0), $rule, $user_row);
         if ($value === null) {
             return false;
         }
@@ -392,19 +475,9 @@ class rules_manager
         };
     }
 
-    protected function normalize_rule_value(string $rule_type, $rule_value): int
+    protected function sync_progressive_family_for_user(int $user_id, string $family, ?array $user_row = null): int
     {
-        $value = max(0, (int) $rule_value);
-
-        return match ($rule_type) {
-            'avatar', 'signature' => min(1, $value),
-            default => min(999999999, $value),
-        };
-    }
-
-    protected function sync_progressive_rule_type_for_user(int $user_id, string $rule_type, ?array $user_row = null): int
-    {
-        if ($user_id <= ANONYMOUS || $rule_type !== 'posts') {
+        if ($user_id <= ANONYMOUS) {
             return 0;
         }
 
@@ -413,10 +486,15 @@ class rules_manager
             return 0;
         }
 
-        $rules = $this->get_enabled_rules_by_type($rule_type);
+        $rules = $this->get_enabled_progressive_rules_by_family($family);
+        if (empty($rules)) {
+            return 0;
+        }
+
         $matched_rules = [];
         foreach ($rules as $rule) {
-            if ($this->rule_matches_user($rule, $user_row)) {
+            $provider = $this->get_provider_for_rule($rule);
+            if ($provider && $this->rule_matches_user($rule, $user_row, $provider)) {
                 $matched_rules[] = $rule;
             }
         }
@@ -437,6 +515,7 @@ class rules_manager
 
         $created = 0;
         if ($winner) {
+            $winner_provider = $this->get_provider_for_rule($winner);
             $grant = $this->grant_manager->grant_medal_to_user(
                 $user_id,
                 (int) $winner['medal_id'],
@@ -444,7 +523,8 @@ class rules_manager
                 'auto',
                 '',
                 0,
-                !empty($winner['rule_notify'])
+                !empty($winner['rule_notify']),
+                $winner_provider ? $winner_provider->get_family() : $family
             );
 
             if (!empty($grant['success']) && !empty($grant['created'])) {
@@ -453,7 +533,7 @@ class rules_manager
         }
 
         $keep_rule_id = $winner ? (int) $winner['rule_id'] : 0;
-        foreach ($this->get_auto_awards_for_rule_type($user_id, $rule_type) as $award) {
+        foreach ($this->get_auto_awards_for_family($user_id, $family) as $award) {
             $award_rule_id = (int) ($award['rule_id'] ?? 0);
             if ($keep_rule_id > 0 && $award_rule_id === $keep_rule_id) {
                 continue;
@@ -468,16 +548,59 @@ class rules_manager
         return $created;
     }
 
-    protected function get_enabled_rules_by_type(string $rule_type): array
+    protected function get_enabled_progressive_rules_by_family(string $family): array
     {
-        $sql = 'SELECT *
-            FROM ' . $this->rules_table . "
-            WHERE rule_enabled = 1
-                AND rule_type = '" . $this->db->sql_escape($rule_type) . "'
-            ORDER BY rule_value + 0 ASC, rule_id ASC";
+        $rules = [];
+        foreach ($this->get_enabled_rules() as $rule) {
+            $provider = $this->get_provider_for_rule($rule);
+            if (!$provider || !$provider->is_progressive() || $provider->get_family() !== $family) {
+                continue;
+            }
+
+            $rules[] = $rule;
+        }
+
+        return $rules;
+    }
+
+    protected function get_auto_awards_for_family(int $user_id, string $family): array
+    {
+        $family_rule_types = $this->get_rule_types_for_family($family);
+        if (empty($family_rule_types) && !$this->has_award_family_column()) {
+            return [];
+        }
+
+        if ($this->has_award_family_column()) {
+            $conditions = [
+                "a.award_family = '" . $this->db->sql_escape($family) . "'",
+            ];
+
+            if (!empty($family_rule_types)) {
+                $conditions[] = "(a.award_family = '' AND " . $this->db->sql_in_set('r.rule_type', $family_rule_types) . ')';
+            }
+
+            $sql = 'SELECT a.award_id, a.medal_id, a.rule_id, a.award_family
+                FROM ' . $this->awards_table . ' a
+                LEFT JOIN ' . $this->rules_table . ' r ON r.rule_id = a.rule_id
+                WHERE a.user_id = ' . (int) $user_id . "
+                    AND a.award_source = 'auto'
+                    AND (" . implode(' OR ', $conditions) . ')';
+        } else {
+            $sql = 'SELECT a.award_id, a.medal_id, a.rule_id
+                FROM ' . $this->awards_table . ' a
+                LEFT JOIN ' . $this->rules_table . ' r ON r.rule_id = a.rule_id
+                WHERE a.user_id = ' . (int) $user_id . "
+                    AND a.award_source = 'auto'
+                    AND " . $this->db->sql_in_set('r.rule_type', $family_rule_types);
+        }
+
         $result = $this->db->sql_query($sql);
         $rows = [];
         while ($row = $this->db->sql_fetchrow($result)) {
+            if (!isset($row['award_family'])) {
+                $row['award_family'] = '';
+            }
+
             $rows[] = $row;
         }
         $this->db->sql_freeresult($result);
@@ -485,49 +608,100 @@ class rules_manager
         return $rows;
     }
 
-    protected function get_auto_awards_for_rule_type(int $user_id, string $rule_type): array
-    {
-        $sql = 'SELECT a.award_id, a.medal_id, a.rule_id
-            FROM ' . $this->awards_table . ' a
-            INNER JOIN ' . $this->rules_table . ' r ON r.rule_id = a.rule_id
-            WHERE a.user_id = ' . (int) $user_id . "
-                AND a.award_source = 'auto'
-                AND r.rule_type = '" . $this->db->sql_escape($rule_type) . "'";
-        $result = $this->db->sql_query($sql);
-        $rows = [];
-        while ($row = $this->db->sql_fetchrow($result)) {
-            $rows[] = $row;
-        }
-        $this->db->sql_freeresult($result);
 
-        return $rows;
+    protected function has_award_family_column(): bool
+    {
+        if ($this->supports_award_family !== null) {
+            return $this->supports_award_family;
+        }
+
+        $sql_layer = method_exists($this->db, 'get_sql_layer') ? (string) $this->db->get_sql_layer() : 'mysqli';
+        $table_name = $this->awards_table;
+        $exists = false;
+
+        switch ($sql_layer) {
+            case 'mysqli':
+            case 'mysql4':
+            case 'mysql':
+                $sql = "SHOW COLUMNS FROM " . $table_name . " LIKE 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'postgres':
+            case 'postgresql':
+                $sql = "SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = '" . $this->db->sql_escape($table_name) . "'
+                        AND column_name = 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'sqlite':
+            case 'sqlite3':
+                $sql = 'PRAGMA table_info(' . $table_name . ')';
+                $result = $this->db->sql_query($sql);
+                while ($row = $this->db->sql_fetchrow($result)) {
+                    if ((string) ($row['name'] ?? '') === 'award_family') {
+                        $exists = true;
+                        break;
+                    }
+                }
+                $this->db->sql_freeresult($result);
+            break;
+
+            case 'oracle':
+                $sql = "SELECT column_name
+                    FROM user_tab_cols
+                    WHERE table_name = '" . strtoupper($this->db->sql_escape($table_name)) . "'
+                        AND column_name = 'AWARD_FAMILY'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+
+            default:
+                $sql = "SELECT column_name
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE TABLE_NAME = '" . $this->db->sql_escape($table_name) . "'
+                        AND COLUMN_NAME = 'award_family'";
+                $result = $this->db->sql_query($sql);
+                $exists = (bool) $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+            break;
+        }
+
+        $this->supports_award_family = $exists;
+
+        return $this->supports_award_family;
     }
 
-    protected function user_has_custom_avatar(array $user_row): bool
+    protected function get_rule_types_for_family(string $family): array
     {
-        $user_avatar = trim((string) ($user_row['user_avatar'] ?? ''));
-        $user_avatar_type = trim((string) ($user_row['user_avatar_type'] ?? ''));
-        if ($user_avatar === '' || $user_avatar_type === '') {
-            return false;
+        $types = [];
+        foreach ($this->provider_registry->all() as $provider) {
+            if ($provider->get_family() === $family) {
+                $types[] = $provider->get_key();
+            }
         }
 
-        $group_avatar = trim((string) ($user_row['default_group_avatar'] ?? ''));
-        $group_avatar_type = trim((string) ($user_row['default_group_avatar_type'] ?? ''));
-        if ($group_avatar !== '' && $group_avatar_type !== ''
-            && $user_avatar === $group_avatar
-            && $user_avatar_type === $group_avatar_type) {
-            return false;
-        }
-
-        return true;
+        return $types;
     }
 
-    protected function get_membership_days(int $user_regdate): int
+    protected function get_provider_for_rule(array $rule): ?rule_provider_interface
     {
-        if ($user_regdate <= 0) {
-            return 0;
+        return $this->provider_registry->get((string) ($rule['rule_type'] ?? ''));
+    }
+
+    protected function resolve_valid_rule_type(string $rule_type): string
+    {
+        if ($this->provider_registry->exists($rule_type)) {
+            return $rule_type;
         }
 
-        return (int) floor((time() - $user_regdate) / 86400);
+        return $this->provider_registry->get_default_key();
     }
 }

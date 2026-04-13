@@ -2,6 +2,32 @@ imports:
     - { resource: tables.yml }
 
 services:
+    mundophpbb.membermedals.provider.posts:
+        class: mundophpbb\membermedals\provider\posts_provider
+
+    mundophpbb.membermedals.provider.topics:
+        class: mundophpbb\membermedals\provider\topics_provider
+
+    mundophpbb.membermedals.provider.avatar:
+        class: mundophpbb\membermedals\provider\avatar_provider
+
+    mundophpbb.membermedals.provider.signature:
+        class: mundophpbb\membermedals\provider\signature_provider
+
+    mundophpbb.membermedals.provider.membership_days:
+        class: mundophpbb\membermedals\provider\membership_days_provider
+
+    mundophpbb.membermedals.rule_provider_registry:
+        class: mundophpbb\membermedals\service\rule_provider_registry
+        arguments:
+            - '@dispatcher'
+        calls:
+            - [register, ['@mundophpbb.membermedals.provider.avatar']]
+            - [register, ['@mundophpbb.membermedals.provider.membership_days']]
+            - [register, ['@mundophpbb.membermedals.provider.posts']]
+            - [register, ['@mundophpbb.membermedals.provider.signature']]
+            - [register, ['@mundophpbb.membermedals.provider.topics']]
+
     mundophpbb.membermedals.medals_manager:
         class: mundophpbb\membermedals\service\medals_manager
         arguments:
@@ -32,6 +58,7 @@ services:
             - '%tables.membermedals_rules%'
             - '%tables.membermedals_awards%'
             - '@mundophpbb.membermedals.grant_manager'
+            - '@mundophpbb.membermedals.rule_provider_registry'
 
     mundophpbb.membermedals.image_manager:
         class: mundophpbb\membermedals\service\image_manager

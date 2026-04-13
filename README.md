@@ -43,3 +43,42 @@ Implementar:
 3. exibição compacta no `viewtopic`
 
 0.5.3: frontend reorganizado e bots do ACP excluídos das regras, contagens e páginas públicas.
+
+## API de providers de regras (0.7.2)
+
+Guia detalhado para autores: `DEVELOPER_API.md`
+
+
+A extensão agora usa uma arquitetura de **rule providers**.
+
+### Providers nativos
+
+- `posts`
+- `topics`
+- `avatar`
+- `signature`
+- `membership_days`
+
+### Como terceiros podem integrar
+
+O core dispara o evento:
+
+- `mundophpbb.membermedals.collect_rule_providers`
+
+Extensões terceiras podem anexar objetos que implementem:
+
+- `\mundophpbb\membermedals\contract\rule_provider_interface`
+
+### O que um provider define
+
+- chave do critério
+- label do critério
+- operadores suportados
+- família lógica
+- se a família é progressiva
+- como calcular o valor do usuário
+- como normalizar a regra salva no ACP
+
+### Progressão
+
+Providers progressivos usam a noção de **família**. Quando um usuário sobe de faixa na mesma família, a medalha automática anterior pode ser removida e substituída pela superior.
