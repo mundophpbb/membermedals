@@ -46,6 +46,7 @@ services:
             - '@dbal.conn'
             - '@config'
             - '@notification_manager'
+            - '@dispatcher'
             - '%tables.membermedals_medals%'
             - '%tables.membermedals_awards%'
             - '%tables.membermedals_featured%'
@@ -59,6 +60,12 @@ services:
             - '%tables.membermedals_awards%'
             - '@mundophpbb.membermedals.grant_manager'
             - '@mundophpbb.membermedals.rule_provider_registry'
+
+    mundophpbb.membermedals.api:
+        class: mundophpbb\membermedals\service\medals_api
+        arguments:
+            - '@mundophpbb.membermedals.grant_manager'
+            - '@mundophpbb.membermedals.rules_manager'
 
     mundophpbb.membermedals.image_manager:
         class: mundophpbb\membermedals\service\image_manager
@@ -91,6 +98,7 @@ services:
 
     mundophpbb.membermedals.notification.type.medal_awarded:
         class: mundophpbb\membermedals\notification\type\medal_awarded
+        public: true
         shared: false
         parent: notification.type.base
         tags:

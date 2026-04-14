@@ -371,3 +371,145 @@ A API atual já é suficiente para transformar o Member Medals em uma base exten
 Em uma frase:
 
 > o core avalia regras; o provider resolve a métrica.
+
+
+## Fachada pública de concessão / revogação
+
+Além do registro de providers, o core agora expõe um serviço público para integrações externas:
+
+- Serviço: `mundophpbb.membermedals.api`
+- Interface: `\mundophpbb\membermedals\contract\medals_api_interface`
+
+Esse serviço funciona como uma camada estável sobre `grant_manager` e `rules_manager`, sem exigir acesso direto às tabelas da extensão.
+
+### Métodos públicos
+
+#### `award_medal(int $medal_id, int $user_id, array $context = []): array`
+Concede uma medalha a um usuário.
+
+Contextos úteis:
+- `source` → ex.: `integration`, `manual`, `vendor.reactions`
+- `reason` → motivo textual opcional
+- `actor_id` → ID do usuário que originou a ação
+- `notify` → `true` / `false`
+- `award_family` → família lógica opcional
+- `rule_id` → se a integração estiver vinculada a uma regra
+
+#### `revoke_medal(int $medal_id, int $user_id, array $context = []): array`
+Revoga uma medalha de um usuário.
+
+#### `has_medal(int $medal_id, int $user_id): bool`
+Verifica se o usuário já possui a medalha.
+
+#### `sync_user(int $user_id): array`
+Reavalia todas as regras automáticas para um usuário específico.
+
+#### `sync_rule(int $rule_id): array`
+Executa a sincronização de uma regra específica.
+
+## Eventos públicos de concessão / revogação
+
+Além do evento de coleta de providers, o core agora dispara:
+
+- `mundophpbb.membermedals.before_award`
+- `mundophpbb.membermedals.after_award`
+- `mundophpbb.membermedals.before_revoke`
+- `mundophpbb.membermedals.after_revoke`
+
+### before_award
+Permite inspecionar ou cancelar a concessão antes do INSERT.
+
+Variáveis principais:
+- `user_id`
+- `medal_id`
+- `rule_id`
+- `source`
+- `reason`
+- `actor_id`
+- `notify`
+- `award_family`
+- `context`
+- `user_row`
+- `medal_row`
+- `cancel`
+- `cancel_message`
+
+### after_award
+Disparado logo após a criação da concessão.
+
+Variáveis principais:
+- `award_id`
+- `user_id`
+- `medal_id`
+- `rule_id`
+- `source`
+- `reason`
+- `actor_id`
+- `notify`
+- `award_family`
+- `context`
+- `user_row`
+- `medal_row`
+- `result`
+
+### before_revoke
+Permite cancelar a remoção antes do DELETE.
+
+Variáveis principais:
+- `user_id`
+- `medal_id`
+- `context`
+- `user_row`
+- `medal_row`
+- `cancel`
+- `cancel_message`
+
+### after_revoke
+Disparado logo após a revogação.
+
+Variáveis principais:
+- `user_id`
+- `medal_id`
+- `context`
+- `user_row`
+- `medal_row`
+- `result`
+
+## Exemplo de uso da API pública
+
+```php
+<?php
+
+namespace vendor\myprovider\service;
+
+use mundophpbb\membermedals\contract\medals_api_interface;
+
+class rewards_service
+{
+    protected medals_api_interface $member_medals_api;
+
+    public function __construct(medals_api_interface $member_medals_api)
+    {
+        $this->member_medals_api = $member_medals_api;
+    }
+
+    public function reward_user(int $user_id, int $medal_id): array
+    {
+        return $this->member_medals_api->award_medal($medal_id, $user_id, [
+            'source' => 'vendor.rewards',
+            'reason' => 'goal_reached',
+            'notify' => true,
+        ]);
+    }
+}
+```
+
+## Exemplo de services.yml em extensão externa
+
+```yaml
+services:
+    vendor.myprovider.service.rewards:
+        class: vendor\myprovider\service\rewards_service
+        arguments:
+            - '@mundophpbb.membermedals.api'
+```

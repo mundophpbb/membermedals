@@ -201,7 +201,13 @@ class rules_manager
                 '',
                 0,
                 !empty($rule['rule_notify']),
-                $provider->get_family()
+                $provider->get_family(),
+                [
+                    'rule' => $rule,
+                    'provider_key' => $provider->get_key(),
+                    'provider_family' => $provider->get_family(),
+                    'mode' => 'evaluate_user',
+                ]
             );
 
             if (!empty($result['success']) && !empty($result['created'])) {
@@ -268,7 +274,13 @@ class rules_manager
                 '',
                 0,
                 !empty($rule['rule_notify']),
-                $provider->get_family()
+                $provider->get_family(),
+                [
+                    'rule' => $rule,
+                    'provider_key' => $provider->get_key(),
+                    'provider_family' => $provider->get_family(),
+                    'mode' => 'sync_rule',
+                ]
             );
             if (!empty($grant['success']) && !empty($grant['created'])) {
                 $awarded++;
@@ -524,7 +536,13 @@ class rules_manager
                 '',
                 0,
                 !empty($winner['rule_notify']),
-                $winner_provider ? $winner_provider->get_family() : $family
+                $winner_provider ? $winner_provider->get_family() : $family,
+                [
+                    'rule' => $winner,
+                    'provider_key' => $winner_provider ? $winner_provider->get_key() : '',
+                    'provider_family' => $winner_provider ? $winner_provider->get_family() : $family,
+                    'mode' => 'sync_progressive_family',
+                ]
             );
 
             if (!empty($grant['success']) && !empty($grant['created'])) {

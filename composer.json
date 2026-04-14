@@ -2,7 +2,7 @@
     "name": "mundophpbb/membermedals",
     "type": "phpbb-extension",
     "description": "Member Medals for phpBB. A medals and badges system focused on prosilver with a dedicated public page.",
-    "version": "0.7.3",
+    "version": "0.8.0",
     "license": "GPL-2.0-only",
     "authors": [
         {

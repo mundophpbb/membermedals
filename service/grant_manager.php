@@ -9,6 +9,7 @@ namespace mundophpbb\membermedals\service;
 
 use phpbb\config\config;
 use phpbb\db\driver\driver_interface;
+use phpbb\event\dispatcher_interface;
 use phpbb\notification\manager;
 
 class grant_manager
@@ -21,6 +22,8 @@ class grant_manager
 
     /** @var manager */
     protected $notification_manager;
+
+    protected dispatcher_interface $dispatcher;
 
     /** @var string */
     protected $medals_table;
@@ -38,6 +41,7 @@ class grant_manager
         driver_interface $db,
         config $config,
         manager $notification_manager,
+        dispatcher_interface $dispatcher,
         string $medals_table,
         string $awards_table,
         string $featured_table
@@ -45,12 +49,13 @@ class grant_manager
         $this->db = $db;
         $this->config = $config;
         $this->notification_manager = $notification_manager;
+        $this->dispatcher = $dispatcher;
         $this->medals_table = $medals_table;
         $this->awards_table = $awards_table;
         $this->featured_table = $featured_table;
     }
 
-    public function grant_medal_by_username(string $username, int $medal_id, string $reason = '', int $actor_id = 0): array
+    public function grant_medal_by_username(string $username, int $medal_id, string $reason = '', int $actor_id = 0, array $context = []): array
     {
         $user_row = $this->get_user_by_username($username);
         if (!$user_row) {
@@ -60,7 +65,7 @@ class grant_manager
             ];
         }
 
-        return $this->grant_medal_to_user((int) $user_row['user_id'], $medal_id, 0, 'manual', $reason, $actor_id, true);
+        return $this->grant_medal_to_user((int) $user_row['user_id'], $medal_id, 0, 'manual', $reason, $actor_id, true, '', $context);
     }
 
     public function grant_medal_to_user(
@@ -71,7 +76,8 @@ class grant_manager
         string $reason = '',
         int $actor_id = 0,
         bool $notify = true,
-        string $award_family = ''
+        string $award_family = '',
+        array $context = []
     ): array {
         $user_row = $this->get_user_by_id($user_id);
         if (!$user_row) {
@@ -94,6 +100,32 @@ class grant_manager
                 'success' => true,
                 'created' => false,
                 'message' => 'ACP_MEMBERMEDALS_AWARD_ALREADY_EXISTS',
+                'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
+            ];
+        }
+
+        $cancel = false;
+        $cancel_message = '';
+        extract($this->dispatcher->trigger_event('mundophpbb.membermedals.before_award', compact(
+            'user_id',
+            'medal_id',
+            'rule_id',
+            'source',
+            'reason',
+            'actor_id',
+            'notify',
+            'award_family',
+            'context',
+            'user_row',
+            'medal_row',
+            'cancel',
+            'cancel_message'
+        )));
+
+        if (!empty($cancel)) {
+            return [
+                'success' => false,
+                'message' => $cancel_message !== '' ? (string) $cancel_message : 'ACP_MEMBERMEDALS_AWARD_NOT_FOUND',
                 'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
             ];
         }
@@ -129,17 +161,49 @@ class grant_manager
             );
         }
 
-        return [
+        $result = [
             'success'    => true,
             'created'    => true,
             'message'    => $source === 'auto' ? 'ACP_MEMBERMEDALS_AUTO_AWARD_GRANTED' : 'ACP_MEMBERMEDALS_AWARD_GRANTED',
             'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
+            'award_id'   => $award_id,
         ];
+
+        $this->dispatcher->trigger_event('mundophpbb.membermedals.after_award', compact(
+            'award_id',
+            'user_id',
+            'medal_id',
+            'rule_id',
+            'source',
+            'reason',
+            'actor_id',
+            'notify',
+            'award_family',
+            'context',
+            'user_row',
+            'medal_row',
+            'result'
+        ));
+
+        return $result;
     }
 
-    public function remove_medal_by_username(string $username, int $medal_id): array
+    public function remove_medal_by_username(string $username, int $medal_id, array $context = []): array
     {
         $user_row = $this->get_user_by_username($username);
+        if (!$user_row) {
+            return [
+                'success' => false,
+                'message' => 'ACP_MEMBERMEDALS_USER_NOT_FOUND',
+            ];
+        }
+
+        return $this->revoke_medal_from_user((int) $user_row['user_id'], $medal_id, $context);
+    }
+
+    public function revoke_medal_from_user(int $user_id, int $medal_id, array $context = []): array
+    {
+        $user_row = $this->get_user_by_id($user_id);
         if (!$user_row) {
             return [
                 'success' => false,
@@ -155,23 +219,55 @@ class grant_manager
             ];
         }
 
-        if (!$this->user_has_medal((int) $user_row['user_id'], $medal_id)) {
+        if (!$this->user_has_medal($user_id, $medal_id)) {
             return [
                 'success' => false,
                 'message' => 'ACP_MEMBERMEDALS_AWARD_NOT_FOUND',
+                'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
             ];
         }
 
-        $this->remove_medal_from_user((int) $user_row['user_id'], $medal_id);
+        $cancel = false;
+        $cancel_message = '';
+        extract($this->dispatcher->trigger_event('mundophpbb.membermedals.before_revoke', compact(
+            'user_id',
+            'medal_id',
+            'context',
+            'user_row',
+            'medal_row',
+            'cancel',
+            'cancel_message'
+        )));
 
-        return [
+        if (!empty($cancel)) {
+            return [
+                'success' => false,
+                'message' => $cancel_message !== '' ? (string) $cancel_message : 'ACP_MEMBERMEDALS_AWARD_NOT_FOUND',
+                'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
+            ];
+        }
+
+        $this->remove_medal_from_user($user_id, $medal_id, $context);
+
+        $result = [
             'success'    => true,
             'message'    => 'ACP_MEMBERMEDALS_AWARD_REMOVED',
             'medal_name' => (string) ($medal_row['medal_name'] ?? ''),
         ];
+
+        $this->dispatcher->trigger_event('mundophpbb.membermedals.after_revoke', compact(
+            'user_id',
+            'medal_id',
+            'context',
+            'user_row',
+            'medal_row',
+            'result'
+        ));
+
+        return $result;
     }
 
-    public function remove_medal_from_user(int $user_id, int $medal_id): void
+    public function remove_medal_from_user(int $user_id, int $medal_id, array $context = []): void
     {
         if ($user_id <= ANONYMOUS || $medal_id <= 0) {
             return;
@@ -186,6 +282,11 @@ class grant_manager
             WHERE user_id = ' . (int) $user_id . '
                 AND medal_id = ' . (int) $medal_id;
         $this->db->sql_query($sql);
+    }
+
+    public function has_medal(int $user_id, int $medal_id): bool
+    {
+        return $this->user_has_medal($user_id, $medal_id);
     }
 
     protected function get_user_by_username(string $username): array
@@ -229,7 +330,6 @@ class grant_manager
 
         return $row;
     }
-
 
     protected function has_award_family_column(): bool
     {
