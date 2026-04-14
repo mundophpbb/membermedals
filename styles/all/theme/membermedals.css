@@ -407,3 +407,158 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+.membermedals-dashboard-panel-front {
+    overflow: hidden;
+}
+.membermedals-dashboard-panel-front .inner {
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+.membermedals-dashboard-panel-front h3 {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dbe3ea;
+    letter-spacing: .01em;
+}
+.membermedals-data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.membermedals-data-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #dbe3ea;
+    background: #fff;
+}
+.membermedals-data-row + .membermedals-data-row {
+    margin-top: 0;
+}
+.membermedals-data-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.membermedals-data-title {
+    display: block;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.membermedals-data-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    text-align: right;
+    font-size: 12px;
+}
+.membermedals-data-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border: 1px solid #cfd9e2;
+    background: #f5f8fb;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.membermedals-data-date {
+    color: #5b6b7a;
+    white-space: nowrap;
+}
+.membermedals-empty-state {
+    padding: 12px;
+    border: 1px dashed #cfd9e2;
+    background: #fff;
+    color: #5b6b7a;
+}
+.membermedals-topiclist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.membermedals-topiclist .row,
+.membermedals-topiclist .row:hover {
+    background: transparent;
+}
+.membermedals-topiclist .row dl {
+    border: 0;
+}
+@media (max-width: 700px) {
+    .membermedals-data-row,
+    .membermedals-data-row-stackable {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .membermedals-data-meta {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+    }
+    .membermedals-data-date {
+        white-space: normal;
+    }
+}
+
+
+.membermedals-dashboard-panel-featured .inner {
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+.membermedals-featured-members-list {
+    gap: 10px;
+}
+.membermedals-featured-member-row {
+    align-items: center;
+    border-color: #dbe3ea;
+    background: #fff;
+}
+.membermedals-featured-member-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.membermedals-featured-member-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.membermedals-rank-badge-front {
+    min-width: 34px;
+    min-height: 26px;
+    padding: 4px 8px;
+    border-color: #cfd9e2;
+    background: #f5f8fb;
+    font-weight: 700;
+}
+.membermedals-featured-member-meta {
+    gap: 6px;
+}
+.membermedals-data-pill-strong {
+    min-width: 34px;
+}
+.membermedals-featured-member-label {
+    color: #5b6b7a;
+    font-size: 12px;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+@media (max-width: 700px) {
+    .membermedals-featured-member-main {
+        width: 100%;
+    }
+    .membermedals-featured-member-meta {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .membermedals-featured-member-label {
+        white-space: normal;
+    }
+}

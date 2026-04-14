@@ -25,20 +25,23 @@
 
 <div class="membermedals-dashboard-grid">
     <!-- IF S_HAS_TOP_MEMBERS -->
-    <section class="panel bg1 membermedals-dashboard-panel">
+    <section class="panel bg1 membermedals-dashboard-panel membermedals-dashboard-panel-front membermedals-dashboard-panel-featured">
         <div class="inner">
             <h3>{L_MEMBERMEDALS_TOP_MEMBERS}</h3>
-            <div class="membermedals-simple-list">
+            <div class="membermedals-data-list membermedals-featured-members-list">
                 <!-- BEGIN top_members -->
-                <div class="membermedals-simple-item">
-                    <div class="membermedals-simple-main">
-                        <span class="membermedals-rank-badge">#{top_members.RANK_POS}</span>
-                        <span class="membermedals-simple-user">{top_members.USERNAME_FULL}</span>
+                <div class="membermedals-data-row membermedals-data-row-stackable membermedals-featured-member-row">
+                    <div class="membermedals-data-main membermedals-featured-member-main">
+                        <span class="membermedals-rank-badge membermedals-rank-badge-front">#{top_members.RANK_POS}</span>
+                        <span class="membermedals-data-title membermedals-featured-member-name">{top_members.USERNAME_FULL}</span>
                     </div>
-                    <div class="membermedals-simple-meta"><span class="membermedals-stat-pill">{top_members.AWARD_TOTAL}</span> {L_MEMBERMEDALS_TOTAL_EARNED}</div>
+                    <div class="membermedals-data-meta membermedals-featured-member-meta">
+                        <span class="membermedals-data-pill membermedals-data-pill-strong">{top_members.AWARD_TOTAL}</span>
+                        <span class="membermedals-featured-member-label">{L_MEMBERMEDALS_TOTAL_EARNED}</span>
+                    </div>
                 </div>
                 <!-- BEGINELSE -->
-                <p>{L_MEMBERMEDALS_NO_RECENT_AWARDS}</p>
+                <div class="membermedals-empty-state">{L_MEMBERMEDALS_NO_RECENT_AWARDS}</div>
                 <!-- END top_members -->
             </div>
         </div>

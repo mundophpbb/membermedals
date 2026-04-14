@@ -20,41 +20,45 @@
 </div>
 
 <div class="membermedals-dashboard-grid membermedals-detail-grid">
-    <section class="panel bg1 membermedals-dashboard-panel">
+    <section class="panel bg1 membermedals-dashboard-panel membermedals-dashboard-panel-front">
         <div class="inner">
             <h3>{L_MEMBERMEDALS_RULES}</h3>
-            <ul class="topiclist forums membermedals-topiclist">
+            <div class="membermedals-data-list">
                 <!-- BEGIN rules -->
-                <li class="row">
-                    <dl>
-                        <dt>{rules.RULE_LABEL}</dt>
-                        <dd>{rules.RULE_STATUS}</dd>
-                    </dl>
-                </li>
+                <div class="membermedals-data-row">
+                    <div class="membermedals-data-main">
+                        <span class="membermedals-data-title">{rules.RULE_LABEL}</span>
+                    </div>
+                    <div class="membermedals-data-meta">
+                        <span class="membermedals-data-pill">{rules.RULE_STATUS}</span>
+                    </div>
+                </div>
                 <!-- BEGINELSE -->
-                <li class="row"><dl><dt>{L_MEMBERMEDALS_NO_RULES}</dt></dl></li>
+                <div class="membermedals-empty-state">{L_MEMBERMEDALS_NO_RULES}</div>
                 <!-- END rules -->
-            </ul>
+            </div>
         </div>
     </section>
 
     <!-- IF S_HAS_WINNERS -->
-    <section class="panel bg1 membermedals-dashboard-panel">
+    <section class="panel bg1 membermedals-dashboard-panel membermedals-dashboard-panel-front">
         <div class="inner">
             <h3>{L_MEMBERMEDALS_WINNERS}</h3>
-            <ul class="topiclist forums membermedals-topiclist">
+            <div class="membermedals-data-list">
                 <!-- BEGIN winners -->
-                <li class="row">
-                    <dl>
-                        <dt>{winners.USERNAME_FULL}</dt>
-                        <dd>{winners.AWARD_SOURCE}</dd>
-                        <dd>{winners.AWARDED_AT}</dd>
-                    </dl>
-                </li>
+                <div class="membermedals-data-row membermedals-data-row-stackable">
+                    <div class="membermedals-data-main">
+                        <span class="membermedals-data-title">{winners.USERNAME_FULL}</span>
+                    </div>
+                    <div class="membermedals-data-meta">
+                        <!-- IF winners.AWARD_SOURCE --><span class="membermedals-data-pill">{winners.AWARD_SOURCE}</span><!-- ENDIF -->
+                        <!-- IF winners.AWARDED_AT --><span class="membermedals-data-date">{winners.AWARDED_AT}</span><!-- ENDIF -->
+                    </div>
+                </div>
                 <!-- BEGINELSE -->
-                <li class="row"><dl><dt>{L_MEMBERMEDALS_NO_WINNERS}</dt></dl></li>
+                <div class="membermedals-empty-state">{L_MEMBERMEDALS_NO_WINNERS}</div>
                 <!-- END winners -->
-            </ul>
+            </div>
         </div>
     </section>
     <!-- ENDIF -->
